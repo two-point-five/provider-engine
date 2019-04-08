@@ -223,9 +223,9 @@ BlockCacheStrategy.prototype.hitCheck = function(payload, requestedBlockNumber, 
 
   var identifier = cacheUtils.cacheIdentifierForPayload(payload)
   var cached = blockCache[identifier]
-
   if (cached) {
-    return hit(null, cached)
+    var clonedValue = clone(cached)
+    return hit(null, clonedValue)
   } else {
     return miss()
   }
