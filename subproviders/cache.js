@@ -225,6 +225,7 @@ BlockCacheStrategy.prototype.hitCheck = function(payload, requestedBlockNumber, 
   var cached = blockCache[identifier]
   if (cached) {
     var clonedValue = clone(cached)
+    console.log(`HIT! returning ${clonedValue} from cache for block ${requestedBlockNumber}`);
     return hit(null, clonedValue)
   } else {
     return miss()
@@ -235,7 +236,9 @@ BlockCacheStrategy.prototype.cacheResult = function(payload, result, requestedBl
   if (result) {
     var blockCache = this.getBlockCacheForPayload(payload, requestedBlockNumber)
     var identifier = cacheUtils.cacheIdentifierForPayload(payload)
-    blockCache[identifier] = result
+    var clonedValue = clone(result)
+    console.log(`caching ${result} for block ${requestedBlockNumber}`);
+    blockCache[identifier] = clonedValue
   }
   callback()
 }
