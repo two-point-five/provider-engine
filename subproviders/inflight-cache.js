@@ -1,5 +1,6 @@
 const cacheIdentifierForPayload = require('../util/rpc-cache-utils.js').cacheIdentifierForPayload
 const Subprovider = require('./subprovider.js')
+const clone = require('clone')
 
 
 class InflightCacheSubprovider extends Subprovider {
@@ -30,8 +31,8 @@ class InflightCacheSubprovider extends Subprovider {
       next((err, result, cb) => {
         // complete inflight for cacheId
         delete this.inflightRequests[cacheId]
-        activeRequestHandlers.forEach((handler) => handler(err, Object.assign({}, result)))
-        cb(err, result)
+        activeRequestHandlers.forEach((handler) => handler(err, clone(result)))
+        cb(err, clone(result))
       })
 
     } else {
