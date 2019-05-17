@@ -213,7 +213,8 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
 
     // run polling until first block
     engine.start()
-    engine.once('block', () => {
+
+    engine.once('latest', () => {
       // stop polling
       engine.stop()
       // clear subprovider metrics
@@ -222,7 +223,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       blockProvider.clearMetrics()
 
       // determine which provider will handle the request
-      const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber')
+      const isBlockTest = (payloads[0].method === 'eth_blockNumber')
       const handlingProvider = isBlockTest ? blockProvider : dataProvider
 
       // begin cache test

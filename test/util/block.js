@@ -17,6 +17,11 @@ function TestBlockProvider(methods){
   self._pendingTxs = []
   self.nextBlock()
   FixtureProvider.call(self, {
+    eth_blockNumber: function(payload, next, end) {
+      const block = self._currentBlock;
+      const result = (block && block.number) || null;
+      setTimeout(() => end(null, result));
+    },
     eth_getBlockByNumber: function(payload, next, end){
       const blockRef = payload.params[0]
       const result = self.getBlockByRef(blockRef)
