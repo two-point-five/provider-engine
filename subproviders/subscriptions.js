@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const FilterSubprovider = require('./filters.js')
 const from = require('../util/rpc-hex-encoding.js')
 const inherits = require('util').inherits
-const utils = require('ethereumjs-util')
+const utils = require('../util/eth-util.js');
 
 function SubscriptionSubprovider(opts) {
   const self = this

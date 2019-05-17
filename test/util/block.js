@@ -1,6 +1,6 @@
 const inherits = require('util').inherits
 const extend = require('xtend')
-const ethUtil = require('ethereumjs-util')
+const ethUtil = require('../../util/eth-util.js');
 const FixtureProvider = require('../../subproviders/fixture.js')
 
 module.exports = TestBlockProvider

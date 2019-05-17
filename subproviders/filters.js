@@ -1,6 +1,6 @@
 const async = require('async')
 const inherits = require('util').inherits
-const ethUtil = require('ethereumjs-util')
+const ethUtil = require('../util/eth-util');
 const Subprovider = require('./subprovider.js')
 const Stoplight = require('../util/stoplight.js')
 const EventEmitter = require('events').EventEmitter

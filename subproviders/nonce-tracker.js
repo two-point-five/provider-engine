@@ -1,6 +1,6 @@
 const inherits = require('util').inherits
 const Transaction = require('ethereumjs-tx')
-const ethUtil = require('ethereumjs-util')
+const ethUtil = require('../util/eth-util.js');
 const Subprovider = require('./subprovider.js')
 const blockTagForPayload = require('../util/rpc-cache-utils').blockTagForPayload
 
