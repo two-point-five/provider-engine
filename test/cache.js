@@ -207,12 +207,10 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
     var blockProvider = injectMetrics(new TestBlockProvider())
 
     var engine = new ProviderEngine()
+
     engine.addProvider(cacheProvider)
     engine.addProvider(dataProvider)
     engine.addProvider(blockProvider)
-
-    // run polling until first block
-    engine.start()
 
     engine.once('latest', () => {
       // stop polling
@@ -230,7 +228,10 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, function(err, response) {
         t.end()
       })
-    })
+    });
+
+    // run polling until first block
+    engine.start()
 
     function cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, cb) {
       var method = payloads[0].method
