@@ -1,10 +1,10 @@
 const test = require('tape')
 const asyncParallel = require('async/parallel')
-const ProviderEngine = require('../index.js')
-const FixtureProvider = require('../subproviders/fixture.js')
-const InflightCacheProvider = require('../subproviders/inflight-cache.js')
-const TestBlockProvider = require('./util/block.js')
-const createPayload = require('../util/create-payload.js')
+import ProviderEngine from '../src/index.js';
+import FixtureProvider from '../src/subproviders/fixture.js';
+import InflightCacheProvider from '../src/subproviders/inflight-cache.js';
+import TestBlockProvider from './util/block.js';
+import { createPayload } from '../src/util/create-payload.js';
 const injectMetrics = require('./util/inject-metrics')
 
 inflightTest('getBalance for latest', {
@@ -81,7 +81,7 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest){
 
           t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "'+method+'"')
           t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "'+method+'"')
-        
+
         } else {
 
           t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"')

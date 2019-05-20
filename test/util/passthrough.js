@@ -1,15 +1,7 @@
-const inherits = require('util').inherits
-const FixtureProvider = require('../../subproviders/fixture.js')
+import FixtureProvider from '../../src/subproviders/fixture.js';
 
-module.exports = PassthroughProvider
-
-//
-// handles no methods, skips all requests
-// mostly useless
-//
-
-inherits(PassthroughProvider, FixtureProvider)
-function PassthroughProvider(methods){
-  const self = this
-  FixtureProvider.call(self, {})
+export default class PassthroughProvider extends FixtureProvider {
+  constructor() {
+    super({});
+  }
 }

@@ -1,5 +1,5 @@
 const inherits = require('util').inherits
-const Subprovider = require('../../subproviders/subprovider.js')
+import Subprovider from '../../src/subproviders/subprovider.js';
 const extend = require('xtend')
 
 module.exports = MockSubprovider
@@ -21,4 +21,3 @@ var mockResponse = {
 MockSubprovider.prototype.handleRequest = function(payload, next, end){
   end(mockResponse)
 }
-

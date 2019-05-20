@@ -1,5 +1,5 @@
-const test = require('tape')
-const cacheUtils = require('../util/rpc-cache-utils')
+const test = require('tape');
+import * as cacheUtils from '../src/util/rpc-cache-utils';
 
 test('cacheIdentifierForPayload for latest block', function (t) {
   const payload1 = {id: 1, jsonrpc: '2.0', params: ['latest', false], method: 'eth_getBlockByNumber'}

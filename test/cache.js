@@ -1,56 +1,56 @@
-const test = require('tape')
-const ProviderEngine = require('../index.js')
-const FixtureProvider = require('../subproviders/fixture.js')
-const CacheProvider = require('../subproviders/cache.js')
-const TestBlockProvider = require('./util/block.js')
-const createPayload = require('../util/create-payload.js')
-const injectMetrics = require('./util/inject-metrics')
+const test = require('tape');
+import ProviderEngine from '../src/index.js';
+import FixtureProvider from '../src/subproviders/fixture.js';
+import CacheProvider from '../src/subproviders/cache.js';
+import TestBlockProvider from './util/block.js';
+import { createPayload } from '../src/util/create-payload.js';
+const injectMetrics = require('./util/inject-metrics');
 
 // skip cache
 
 cacheTest('skipCache - true', {
   method: 'eth_getBalance',
   skipCache: true,
-}, false)
+}, false);
 
 cacheTest('skipCache - false', {
   method: 'eth_getBalance',
   skipCache: false,
-}, true)
+}, true);
 
 // block tags
 
 cacheTest('getBalance + undefined blockTag', {
   method: 'eth_getBalance',
   params: ['0x1234'],
-}, true)
+}, true);
 
 cacheTest('getBalance + latest blockTag', {
   method: 'eth_getBalance',
   params: ['0x1234', 'latest'],
-}, true)
+}, true);
 
 cacheTest('getBalance + pending blockTag', {
   method: 'eth_getBalance',
   params: ['0x1234', 'pending'],
-}, false)
+}, false);
 
 // tx by hash
 
 cacheTest('getTransactionByHash for transaction that doesn\'t exist', {
   method: 'eth_getTransactionByHash',
   params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe00'],
-}, false)
+}, false);
 
 cacheTest('getTransactionByHash for transaction that\'s pending', {
   method: 'eth_getTransactionByHash',
   params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
-}, false)
+}, false);
 
 cacheTest('getTransactionByHash for mined transaction', {
   method: 'eth_getTransactionByHash',
   params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
-}, true)
+}, true);
 
 // code
 
@@ -60,7 +60,7 @@ cacheTest('getCode for latest block, then for earliest block, should not return 
 }, {
   method: 'eth_getCode',
   params: ['0x1234', 'earliest'],
-}], false)
+}], false);
 
 cacheTest('getCode for a specific block, then for the one before it, should not return cached response on second request', [{
   method: 'eth_getCode',
@@ -68,7 +68,7 @@ cacheTest('getCode for a specific block, then for the one before it, should not 
 }, {
   method: 'eth_getCode',
   params: ['0x1234', '0x2'],
-}], false)
+}], false);
 
 cacheTest('getCode for a specific block, then the one after it, should return cached response on second request', [{
   method: 'eth_getCode',
@@ -76,7 +76,7 @@ cacheTest('getCode for a specific block, then the one after it, should return ca
 }, {
   method: 'eth_getCode',
   params: ['0x1234', '0x3'],
-}], true)
+}], true);
 
 cacheTest('getCode for an unspecified block, then for the latest, should return cached response on second request', [{
   method: 'eth_getCode',
@@ -84,7 +84,7 @@ cacheTest('getCode for an unspecified block, then for the latest, should return 
 }, {
   method: 'eth_getCode',
   params: ['0x1234', 'latest'],
-}], true)
+}], true);
 
 // blocks
 
@@ -94,7 +94,7 @@ cacheTest('getBlockForNumber for latest then block 0', [{
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x0'],
-}], false)
+}], false);
 
 cacheTest('getBlockForNumber for latest then block 1', [{
   method: 'eth_getBlockByNumber',
@@ -102,7 +102,7 @@ cacheTest('getBlockForNumber for latest then block 1', [{
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x1'],
-}], false)
+}], false);
 
 cacheTest('getBlockForNumber for 0 then block 1', [{
   method: 'eth_getBlockByNumber',
@@ -110,7 +110,7 @@ cacheTest('getBlockForNumber for 0 then block 1', [{
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x1'],
-}], false)
+}], false);
 
 cacheTest('getBlockForNumber for block 0', [{
   method: 'eth_getBlockByNumber',
@@ -118,7 +118,7 @@ cacheTest('getBlockForNumber for block 0', [{
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x0'],
-}], true)
+}], true);
 
 cacheTest('getBlockForNumber for block 1', [{
   method: 'eth_getBlockByNumber',
@@ -126,7 +126,7 @@ cacheTest('getBlockForNumber for block 1', [{
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x1'],
-}], true)
+}], true);
 
 // storage
 
@@ -136,7 +136,7 @@ cacheTest('getStorageAt for same block should cache', [{
 }, {
   method: 'eth_getStorageAt',
   params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234'],
-}], true)
+}], true);
 
 cacheTest('getStorageAt for different block should not cache', [{
   method: 'eth_getStorageAt',
@@ -144,7 +144,7 @@ cacheTest('getStorageAt for different block should not cache', [{
 }, {
   method: 'eth_getStorageAt',
   params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x4321'],
-}], false)
+}], false);
 
 
 // test helper for caching
@@ -155,14 +155,14 @@ cacheTest('getStorageAt for different block should not cache', [{
 
 function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
   if (!Array.isArray(payloads)) {
-    payloads = [payloads, payloads]
+    payloads = [payloads, payloads];
   }
 
   test('cache - '+label, function(t){
-    t.plan(12)
+    t.plan(12);
 
     // cache layer
-    var cacheProvider = injectMetrics(new CacheProvider())
+    var cacheProvider = injectMetrics(new CacheProvider());
     // handle balance
     var dataProvider = injectMetrics(new FixtureProvider({
       eth_getBalance: '0xdeadbeef',
@@ -170,7 +170,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       eth_getTransactionByHash: function(payload, next, end) {
         // represents a pending tx
         if (payload.params[0] === '0x00000000000000000000000000000000000000000000000000deadbeefcafe00') {
-          end(null, null)
+          end(null, null);
         } else if (payload.params[0] === '0x00000000000000000000000000000000000000000000000000deadbeefcafe01') {
           end(null, {
             hash: '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
@@ -184,7 +184,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
             gas: '0x5622',
             gasPrice: '0xba43b7400',
             input: '0x',
-          })
+          });
         } else {
           end(null, {
             hash: payload.params[0],
@@ -198,84 +198,91 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
             gas: '0x5622',
             gasPrice: '0xba43b7400',
             input: '0x',
-          })
+          });
         }
       },
       eth_getStorageAt: '0x00000000000000000000000000000000000000000000000000000000deadbeef',
-    }))
+    }));
     // handle dummy block
-    var blockProvider = injectMetrics(new TestBlockProvider())
+    var blockProvider = injectMetrics(new TestBlockProvider());
 
-    var engine = new ProviderEngine()
+    var engine = new ProviderEngine({
+      pollingInterval: 20,
+      pollingShouldUnref: true,
+    });
 
-    engine.addProvider(cacheProvider)
-    engine.addProvider(dataProvider)
-    engine.addProvider(blockProvider)
+    engine.addProvider(cacheProvider);
+    engine.addProvider(dataProvider);
+    engine.addProvider(blockProvider);
 
-    engine.once('latest', () => {
+    engine.once('block', () => {
       // stop polling
-      engine.stop()
+      engine.stop();
       // clear subprovider metrics
-      cacheProvider.clearMetrics()
-      dataProvider.clearMetrics()
-      blockProvider.clearMetrics()
+      cacheProvider.clearMetrics();
+      dataProvider.clearMetrics();
+      blockProvider.clearMetrics();
 
-      // determine which provider will handle the request
-      const isBlockTest = (payloads[0].method === 'eth_blockNumber')
-      const handlingProvider = isBlockTest ? blockProvider : dataProvider
+      // determine which provider will handle the request (only for requests made in this test)
+      const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber');
+      const handlingProvider = isBlockTest ? blockProvider : dataProvider;
 
       // begin cache test
       cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, function(err, response) {
-        t.end()
-      })
+        t.end();
+      });
     });
 
-    // run polling until first block
-    engine.start()
+    engine.start();
+
+    setTimeout(() => {
+      blockProvider.nextBlock();
+    }, 20);
+
 
     function cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, cb) {
-      var method = payloads[0].method
+      var method = payloads[0].method;
       requestTwice(payloads, function(err, response){
         // first request
-        t.ifError(err || response.error && response.error.message, 'did not error')
-        t.ok(response, 'has response')
+        t.ifError(err || response.error && response.error.message, 'did not error');
+        t.ok(response, 'has response');
 
-        t.equal(cacheProvider.getWitnessed(method).length, 1, 'cacheProvider did see "'+method+'"')
-        t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "'+method+'"')
+        t.equal(cacheProvider.getWitnessed(method).length, 1, 'cacheProvider did see "'+method+'"');
+        t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "'+method+'"');
 
-        t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "'+method+'"')
-        t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "'+method+'"')
+        t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "'+method+'"');
+        t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "'+method+'"');
 
       }, function(err, response){
         // second request
-        t.ifError(err || response.error && response.error.message, 'did not error')
-        t.ok(response, 'has response')
+        t.ifError(err || response.error && response.error.message, 'did not error');
+        t.ok(response, 'has response');
 
         if (shouldHitCacheOnSecondRequest) {
-          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"')
-          t.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did handle "'+method+'"')
+          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"');
+          t.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did handle "'+method+'"');
 
-          t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did NOT see "'+method+'"')
-          t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did NOT handle "'+method+'"')
+          t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did NOT see "'+method+'"');
+          t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did NOT handle "'+method+'"');
         } else {
-          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"')
-          t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did handle "'+method+'"')
+          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"');
+          t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did handle "'+method+'"');
 
-          t.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did NOT see "'+method+'"')
-          t.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did NOT handle "'+method+'"')
+          t.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did NOT see "'+method+'"');
+          t.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did NOT handle "'+method+'"');
         }
 
-        cb()
-      })
+        cb();
+      });
     }
 
     function requestTwice(payloads, afterFirst, afterSecond){
       engine.sendAsync(createPayload(payloads[0]), function(err, result){
-        afterFirst(err, result)
-        engine.sendAsync(createPayload(payloads[1]), afterSecond)
-      })
+        afterFirst(err, result);
+        engine.sendAsync(createPayload(payloads[1]), afterSecond);
+      });
     }
 
-  })
+  });
 
 }
