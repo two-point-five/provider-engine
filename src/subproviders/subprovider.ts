@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import Web3ProviderEngine from '..';
+import Web3ProviderEngine from '../index';
 import { createPayload } from '../util/create-payload';
 
 // this is the base class for a subprovider -- mostly helpers

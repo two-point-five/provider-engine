@@ -1,4 +1,4 @@
-import stringify = require('json-stable-stringify');
+import stringify from 'json-stable-stringify';
 
 export function cacheIdentifierForPayload(payload, opts: any = {}) {
   if (!canCache(payload)) { return null; }

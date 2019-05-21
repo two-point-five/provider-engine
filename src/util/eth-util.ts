@@ -1,5 +1,5 @@
-import BN = require('bn.js');
-import ethjsUtil = require('ethjs-util');
+import BN from 'bn.js';
+import ethjsUtil from 'ethjs-util';
 
 // Methods from ethereumjs-util
 

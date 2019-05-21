@@ -1,6 +1,6 @@
-import eachSeries = require('async/eachSeries');
+import eachSeries from 'async/eachSeries';
 import map from 'async/map';
-import PollingBlockTracker = require('eth-block-tracker');
+import PollingBlockTracker from 'eth-block-tracker';
 import { EventEmitter } from 'events';
 import { createPayload } from './util/create-payload';
 import { toBuffer } from './util/eth-util';

@@ -1,4 +1,4 @@
-import Subprovider from './subprovider.js';
+import Subprovider from './subprovider';
 
 interface Provider {
   sendAsync(payload: any, callback: (err, response) => {});

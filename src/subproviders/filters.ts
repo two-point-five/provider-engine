@@ -1,4 +1,4 @@
-import async = require('async');
+import async from 'async';
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';
