@@ -1,4 +1,4 @@
-import clone = require('clone');
+import clone from 'clone';
 import { bufferToHex } from '../../util/eth-util';
 import { blockTagForPayload, cacheIdentifierForPayload, canCache } from '../../util/rpc-cache-utils';
 import CacheStrategy from './cache-strategy';

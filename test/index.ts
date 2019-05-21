@@ -1,8 +1,8 @@
 // tslint:disable: no-var-requires
-import './basic';
-import './cache';
-import './cache-utils';
-import './filters';
-import './inflight-cache';
-import './subproviders/sanitizer';
-import './subscriptions';
+require('./basic');
+require('./cache-utils');
+require('./cache');
+require('./inflight-cache');
+require('./filters');
+require('./subscriptions');
+require('./subproviders/sanitizer');
