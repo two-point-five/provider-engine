@@ -1,3 +1,4 @@
+import { JSONRPCRequest } from '../provider-engine';
 import Subprovider from './subprovider';
 
 export default class FixtureProvider extends Subprovider {
@@ -8,7 +9,11 @@ export default class FixtureProvider extends Subprovider {
     this.staticResponses = staticResponses || {};
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     const staticResponse = this.staticResponses[payload.method];
     // async function
     if ('function' === typeof staticResponse) {

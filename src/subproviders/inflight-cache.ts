@@ -1,4 +1,5 @@
 import clone from 'clone';
+import { JSONRPCRequest } from '../provider-engine';
 import { cacheIdentifierForPayload } from '../util/rpc-cache-utils';
 import Subprovider from './subprovider';
 
@@ -11,8 +12,12 @@ export default class InflightCacheSubprovider extends Subprovider {
     this.inflightRequests = {};
   }
 
-  public handleRequest(req, next, end) {
-    const cacheId = cacheIdentifierForPayload(req, { includeBlockRef: true });
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
+    const cacheId = cacheIdentifierForPayload(payload, { includeBlockRef: true });
 
     // if not cacheable, skip
     if (!cacheId) { return next(); }

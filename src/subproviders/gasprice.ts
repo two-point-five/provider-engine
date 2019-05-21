@@ -8,25 +8,35 @@
  */
 
 import map from 'async/map';
+import { JSONRPCRequest } from '../provider-engine';
 import Subprovider from './subprovider';
+
+export interface GaspriceProviderOptions {
+  numberOfBlocks?: number;
+  delayInBlocks?: number;
+}
 
 export default class GaspriceProvider extends Subprovider {
   public numberOfBlocks: number;
   public delayInBlocks: number;
 
-  constructor(opts) {
+  constructor(opts?: GaspriceProviderOptions) {
     opts = opts || {};
     super();
     this.numberOfBlocks = opts.numberOfBlocks || 10;
     this.delayInBlocks = opts.delayInBlocks || 5;
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     if (payload.method !== 'eth_gasPrice') {
       return next();
     }
-
-    this.emitPayload({ method: 'eth_blockNumber' }, (_, res) => {
+    const p = { id: 0, jsonrpc: '2.0', method: 'eth_blockNumber', params: [] };
+    this.emitPayload(p, (_, res) => {
       // FIXME: convert number using a bignum library
       let lastBlock = parseInt(res.result, 16) - this.delayInBlocks;
       const blockNumbers = [];
@@ -36,7 +46,8 @@ export default class GaspriceProvider extends Subprovider {
       }
 
       const getBlock = (item, cb) => {
-        this.emitPayload({ method: 'eth_getBlockByNumber', params: [item, true] }, (err, blockRes) => {
+        const p2 = { id: 0, jsonrpc: '2.0', method: 'eth_getBlockByNumber', params: [item, true] };
+        this.emitPayload(p2, (err, blockRes) => {
           if (err) { return cb(err); }
           if (!blockRes.result) { return cb(new Error(`GaspriceProvider - No block for "${item}"`)); }
           cb(null, blockRes.result.transactions);

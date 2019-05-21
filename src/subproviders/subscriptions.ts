@@ -1,17 +1,22 @@
+import { JSONRPCRequest } from '../provider-engine';
 import { bufferToHex } from '../util/eth-util';
 import { bufferToQuantityHex } from '../util/rpc-hex-encoding';
-import FilterSubprovider from './filters';
+import FilterSubprovider, { FilterSubproviderOptions } from './filters';
 
 export default class SubscriptionSubprovider extends FilterSubprovider {
 
   protected subscriptions: any;
 
-  constructor(opts?) {
+  constructor(opts?: FilterSubproviderOptions) {
     super(opts);
     this.subscriptions = {};
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     switch (payload.method) {
       case 'eth_subscribe':
         this.eth_subscribe(payload, end);
@@ -24,7 +29,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
     }
   }
 
-  protected eth_subscribe(payload, cb) {
+  protected eth_subscribe(payload: JSONRPCRequest, cb: (error: Error | null, result?: any) => void) {
     const subscriptionType = payload.params[0];
 
     const callback = (err, hexId) => {
@@ -66,7 +71,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
     }
   }
 
-  protected eth_unsubscribe(payload, cb) {
+  protected eth_unsubscribe(payload: JSONRPCRequest, cb: (error: Error | null, result?: any) => void) {
     const hexId = payload.params[0];
     const id = parseInt(hexId, 16);
     if (!this.subscriptions[id]) {

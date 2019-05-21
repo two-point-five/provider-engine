@@ -4,6 +4,7 @@ import waterfall from 'async/waterfall';
 import fetch from 'cross-fetch';
 import JsonRpcError from 'json-rpc-error';
 import promiseToCallback from 'promise-to-callback';
+import { JSONRPCRequest } from '../provider-engine';
 import { createPayload } from '../util/create-payload';
 import Subprovider from './subprovider';
 
@@ -16,18 +17,27 @@ const RETRIABLE_ERRORS = [
   'SyntaxError',
 ];
 
-export default class RpcSource extends Subprovider {
+export interface FetchSubproviderOptions {
+  rpcUrl: string;
+  originHttpHeaderKey?: string;
+}
+
+export default class FetchSubprovider extends Subprovider {
 
   protected rpcUrl: string;
-  protected originHttpHeaderKey: string;
+  protected originHttpHeaderKey?: string;
 
-  constructor(opts) {
+  constructor(opts: FetchSubproviderOptions) {
     super();
     this.rpcUrl = opts.rpcUrl;
     this.originHttpHeaderKey = opts.originHttpHeaderKey;
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     const originDomain = payload.origin;
 
     // overwrite id to not conflict with other concurrent users
@@ -67,7 +77,7 @@ export default class RpcSource extends Subprovider {
     });
   }
 
-  protected createPayload(payload) {
+  protected createPayload(payload): JSONRPCRequest {
     return createPayload(payload);
   }
 

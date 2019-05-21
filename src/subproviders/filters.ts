@@ -1,4 +1,5 @@
 import parallel from 'async/parallel';
+import { JSONRPCRequest } from '../provider-engine';
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';
@@ -13,6 +14,12 @@ import Subprovider from './subprovider';
 //   eth_getFilterChanges
 //   eth_uninstallFilter
 //   eth_getFilterLogs
+
+export interface FilterSubproviderOptions {
+  maxFilters?: number;
+  pendingBlockTimeout?: number;
+}
+
 export default class FilterSubprovider extends Subprovider {
 
   protected filterIndex: number;
@@ -24,7 +31,7 @@ export default class FilterSubprovider extends Subprovider {
   protected pendingBlockTimeout: number;
   protected checkForPendingBlocksActive: boolean;
 
-  constructor(opts?) {
+  constructor(opts?: FilterSubproviderOptions) {
     super();
     opts = opts || {};
     this.filterIndex = 0;
@@ -58,7 +65,11 @@ export default class FilterSubprovider extends Subprovider {
     });
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     switch (payload.method) {
 
       case 'eth_newBlockFilter':
@@ -180,6 +191,8 @@ export default class FilterSubprovider extends Subprovider {
     if (!filter) { return cb(null, []); }
     if (filter.type === 'log') {
       this.emitPayload({
+        id: 0,
+        jsonrpc: '2.0',
         method: 'eth_getLogs',
         params: [{
           fromBlock: filter.fromBlock,
@@ -222,6 +235,8 @@ export default class FilterSubprovider extends Subprovider {
     if (activePendingTxFilters) {
       this.checkForPendingBlocksActive = true;
       this.emitPayload({
+        id: 0,
+        jsonrpc: '2.0',
         method: 'eth_getBlockByNumber',
         params: ['pending', true],
       }, (err, res) => {
@@ -253,6 +268,8 @@ export default class FilterSubprovider extends Subprovider {
   public _logsForBlock(block, cb) {
     const blockNumber = bufferToNumberHex(block.number);
     this.emitPayload({
+      id: 0,
+      jsonrpc: '2.0',
       method: 'eth_getLogs',
       params: [{
         fromBlock: blockNumber,

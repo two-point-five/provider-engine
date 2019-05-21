@@ -2,9 +2,28 @@ import eachSeries from 'async/eachSeries';
 import map from 'async/map';
 import PollingBlockTracker from 'eth-block-tracker';
 import { EventEmitter } from 'events';
+import Subprovider from './subproviders/subprovider';
 import { createPayload } from './util/create-payload';
 import { toBuffer } from './util/eth-util';
 import Stoplight from './util/stoplight';
+
+export interface JSONRPCResponse {
+  id: number;
+  jsonrpc: string;
+  error?: any;
+  result?: any;
+}
+
+export interface JSONRPCRequest {
+  id?: number;
+  jsonrpc?: string;
+  method: string;
+  params: any[];
+  skipCache?: boolean; // proprietary field, tells provider not to respond from cache
+  origin?: any; // proprietary field, tells provider what origin value to add to http request
+}
+
+export type JSONRPCResponseHandler = (error: null | Error, response: JSONRPCResponse) => void;
 
 export default class Web3ProviderEngine extends EventEmitter {
 
@@ -12,7 +31,7 @@ export default class Web3ProviderEngine extends EventEmitter {
   public _ready: Stoplight;
   public currentBlock: any;
   public currentBlockNumber: any;
-  public _providers: any[];
+  public _providers: Subprovider[];
 
   constructor(opts?) {
     super();
@@ -61,16 +80,16 @@ export default class Web3ProviderEngine extends EventEmitter {
     this._blockTracker.removeAllListeners();
   }
 
-  public addProvider(source) {
+  public addProvider(source: Subprovider) {
     this._providers.push(source);
     source.setEngine(this);
   }
 
-  public send(payload) {
+  public send(payload: JSONRPCRequest) {
     throw new Error('Web3ProviderEngine does not support synchronous requests.');
   }
 
-  public sendAsync(payload, cb) {
+  public sendAsync(payload: JSONRPCRequest, cb: JSONRPCResponseHandler) {
     this._ready.await(() => {
 
       if (Array.isArray(payload)) {
@@ -84,7 +103,7 @@ export default class Web3ProviderEngine extends EventEmitter {
     });
   }
 
-  public _handleAsync(payload, finished) {
+  public _handleAsync(payload: JSONRPCRequest, finished: JSONRPCResponseHandler) {
     let currentProvider = -1;
     let result = null;
     let error = null;

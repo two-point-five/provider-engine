@@ -1,4 +1,6 @@
 import BN from 'bn.js';
+import Web3ProviderEngine from '..';
+import { JSONRPCRequest } from '../provider-engine';
 import { bufferToHex, toBuffer } from '../util/eth-util';
 import { blockTagForPayload, cacheTypeForPayload } from '../util/rpc-cache-utils';
 import Stoplight from '../util/stoplight';
@@ -11,9 +13,8 @@ export default class BlockCacheProvider extends Subprovider {
   private _ready: Stoplight;
   private strategies: any;
 
-  constructor(opts?) {
+  constructor() {
     super();
-    opts = opts || {};
     // set initialization blocker
     this._ready = new Stoplight();
     this.strategies = {
@@ -27,7 +28,7 @@ export default class BlockCacheProvider extends Subprovider {
   }
 
   // setup a block listener on 'setEngine'
-  public setEngine(engine) {
+  public setEngine(engine: Web3ProviderEngine) {
     this.engine = engine;
 
     const clearOldCache = (newBlock) => {
@@ -47,7 +48,11 @@ export default class BlockCacheProvider extends Subprovider {
     });
   }
 
-  public handleRequest(payload, next, end) {
+  public handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     // skip cache if told to do so
     if (payload.skipCache) {
       // console.log('CACHE SKIP - skip cache if told to do so')
@@ -67,7 +72,11 @@ export default class BlockCacheProvider extends Subprovider {
     });
   }
 
-  public _handleRequest(payload, next, end) {
+  public _handleRequest(
+    payload: JSONRPCRequest,
+    next: (cb?) => void,
+    end: (error: Error | null, result?: any) => void,
+  ) {
     const type = cacheTypeForPayload(payload);
     const strategy = this.strategies[type];
 
