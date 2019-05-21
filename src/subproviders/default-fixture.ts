@@ -1,5 +1,5 @@
 import * as extend from 'xtend';
-import FixtureProvider from './fixture.js';
+import FixtureProvider from './fixture';
 
 export default class DefaultFixtures extends FixtureProvider {
   constructor(opts?) {
