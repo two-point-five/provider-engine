@@ -3,11 +3,11 @@
   "version": "0.2.0-beta.4",
   "description": "",
   "repository": "https://github.com/BitskiCo/provider-engine",
-  "main": "dist/es6/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "ts-node node_modules/tape/bin/tape test/index.ts",
     "prepublish": "npm run build",
-    "build": "tsc && babel dist/es6 -d dist/es5"
+    "build": "tsc"
   },
   "author": "",
   "license": "MIT",
