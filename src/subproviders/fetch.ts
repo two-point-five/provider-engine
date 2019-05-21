@@ -1,9 +1,9 @@
-import * as asyncify from 'async/asyncify';
-import * as retry from 'async/retry';
-import * as waterfall from 'async/waterfall';
-import * as fetch from 'cross-fetch';
-import * as JsonRpcError from 'json-rpc-error';
-import * as promiseToCallback from 'promise-to-callback';
+import asyncify from 'async/asyncify';
+import retry from 'async/retry';
+import waterfall from 'async/waterfall';
+import fetch from 'cross-fetch';
+import JsonRpcError from 'json-rpc-error';
+import promiseToCallback from 'promise-to-callback';
 import { createPayload } from '../util/create-payload';
 import Subprovider from './subprovider';
 

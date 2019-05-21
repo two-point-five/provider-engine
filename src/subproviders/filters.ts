@@ -1,4 +1,4 @@
-import * as parallel from 'async/parallel';
+import parallel from 'async/parallel';
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';

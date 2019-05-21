@@ -1,4 +1,4 @@
-import * as extend from 'xtend';
+import extend from 'xtend';
 import FixtureProvider from '../../src/subproviders/fixture';
 import { addHexPrefix, bufferToHex, intToHex, stripHexPrefix, toBuffer } from '../../src/util/eth-util';
 

@@ -1,4 +1,4 @@
-import * as extend from 'xtend';
+import extend from 'xtend';
 import FixtureProvider from './fixture';
 
 export default class DefaultFixtures extends FixtureProvider {

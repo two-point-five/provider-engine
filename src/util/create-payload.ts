@@ -1,4 +1,4 @@
-import * as extend from 'xtend';
+import extend from 'xtend';
 import { createRandomId } from './random-id';
 
 export function createPayload(data) {
