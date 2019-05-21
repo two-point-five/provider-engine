@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import BN = require('bn.js');
 import { bufferToHex, toBuffer } from '../util/eth-util';
 import { blockTagForPayload, cacheTypeForPayload } from '../util/rpc-cache-utils';
 import Stoplight from '../util/stoplight';
@@ -11,7 +11,7 @@ export default class BlockCacheProvider extends Subprovider {
   private _ready: Stoplight;
   private strategies: any;
 
-  constructor(opts) {
+  constructor(opts?) {
     super();
     opts = opts || {};
     // set initialization blocker

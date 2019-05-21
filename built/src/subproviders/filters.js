@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var async_1 = require("async");
+var async = require("async");
 var eth_util_1 = require("../util/eth-util");
 var stoplight_1 = require("../util/stoplight");
 var block_filter_1 = require("./filters/block-filter");
@@ -51,7 +51,7 @@ var FilterSubprovider = /** @class */ (function (_super) {
                 _this._ready.stop();
                 // update filters
                 var updaters = valuesFor(_this.asyncBlockHandlers).map(function (fn) { return fn.bind(null, block); });
-                async_1.default.parallel(updaters, function (err) {
+                async.parallel(updaters, function (err) {
                     // tslint:disable-next-line: no-console
                     if (err) {
                         console.error(err);
@@ -245,7 +245,7 @@ var FilterSubprovider = /** @class */ (function (_super) {
         // update filters
         var updaters = valuesFor(this.asyncPendingBlockHandlers)
             .map(function (fn) { return fn.bind(null, block); });
-        async_1.default.parallel(updaters, cb);
+        async.parallel(updaters, cb);
     };
     FilterSubprovider.prototype._getBlockNumber = function (cb) {
         var blockNumber = bufferToNumberHex(this.engine.currentBlock.number);

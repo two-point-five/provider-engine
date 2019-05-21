@@ -9,7 +9,7 @@ export function estimateGas(provider, txParams, cb) {
   provider.sendAsync(createPayload({
     method: 'eth_estimateGas',
     params: [txParams],
-  }), function(err, res) {
+  }), (err, res) => {
     if (err) {
       // handle simple value transfer case
       if (err.message === 'no contract code at given address') {

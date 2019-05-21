@@ -1,25 +1,9 @@
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var async_1 = require("async");
-var eth_util_1 = require("../util/eth-util");
-var stoplight_1 = require("../util/stoplight");
-var block_filter_1 = require("./filters/block-filter");
-var log_filter_1 = require("./filters/log-filter");
-var pending_tx_filter_1 = require("./filters/pending-tx-filter");
-var subprovider_1 = require("./subprovider");
+import { intToHex, stripHexPrefix } from '../util/eth-util';
+import Stoplight from '../util/stoplight';
+import BlockFilter from './filters/block-filter';
+import LogFilter from './filters/log-filter';
+import PendingTransactionFilter from './filters/pending-tx-filter';
+import Subprovider from './subprovider';
 // handles the following RPC methods:
 //   eth_newBlockFilter
 //   eth_newPendingTransactionFilter
@@ -27,44 +11,41 @@ var subprovider_1 = require("./subprovider");
 //   eth_getFilterChanges
 //   eth_uninstallFilter
 //   eth_getFilterLogs
-var FilterSubprovider = /** @class */ (function (_super) {
-    __extends(FilterSubprovider, _super);
-    function FilterSubprovider(opts) {
-        var _this = _super.call(this) || this;
+export default class FilterSubprovider extends Subprovider {
+    constructor(opts) {
+        super();
         opts = opts || {};
-        _this.filterIndex = 0;
-        _this.filters = {};
-        _this.filterDestroyHandlers = {};
-        _this.asyncBlockHandlers = {};
-        _this.asyncPendingBlockHandlers = {};
-        _this._ready = new stoplight_1.default();
-        _this._ready.setMaxListeners(opts.maxFilters || 25);
-        _this._ready.go();
-        _this.pendingBlockTimeout = opts.pendingBlockTimeout || 4000;
-        _this.checkForPendingBlocksActive = false;
+        this.filterIndex = 0;
+        this.filters = {};
+        this.filterDestroyHandlers = {};
+        this.asyncBlockHandlers = {};
+        this.asyncPendingBlockHandlers = {};
+        this._ready = new Stoplight();
+        this._ready.setMaxListeners(opts.maxFilters || 25);
+        this._ready.go();
+        this.pendingBlockTimeout = opts.pendingBlockTimeout || 4000;
+        this.checkForPendingBlocksActive = false;
         // TODO: Actually load the blocks
         // we dont have engine immeditately
-        setTimeout(function () {
+        setTimeout(() => {
             // asyncBlockHandlers require locking provider until updates are completed
-            _this.engine.on('block', function (block) {
+            this.engine.on('block', (block) => {
                 // pause processing
-                _this._ready.stop();
+                this._ready.stop();
                 // update filters
-                var updaters = valuesFor(_this.asyncBlockHandlers).map(function (fn) { return fn.bind(null, block); });
-                async_1.default.parallel(updaters, function (err) {
+                const updaters = valuesFor(this.asyncBlockHandlers).map((fn) => fn.bind(null, block));
+                async.parallel(updaters, (err) => {
                     // tslint:disable-next-line: no-console
                     if (err) {
                         console.error(err);
                     }
                     // unpause processing
-                    _this._ready.go();
+                    this._ready.go();
                 });
             });
         });
-        return _this;
     }
-    FilterSubprovider.prototype.handleRequest = function (payload, next, end) {
-        var _this = this;
+    handleRequest(payload, next, end) {
         switch (payload.method) {
             case 'eth_newBlockFilter':
                 this.newBlockFilter(end);
@@ -77,56 +58,54 @@ var FilterSubprovider = /** @class */ (function (_super) {
                 this.newLogFilter(payload.params[0], end);
                 return;
             case 'eth_getFilterChanges':
-                this._ready.await(function () {
-                    _this.getFilterChanges(payload.params[0], end);
+                this._ready.await(() => {
+                    this.getFilterChanges(payload.params[0], end);
                 });
                 return;
             case 'eth_getFilterLogs':
-                this._ready.await(function () {
-                    _this.getFilterLogs(payload.params[0], end);
+                this._ready.await(() => {
+                    this.getFilterLogs(payload.params[0], end);
                 });
                 return;
             case 'eth_uninstallFilter':
-                this._ready.await(function () {
-                    _this.uninstallFilter(payload.params[0], end);
+                this._ready.await(() => {
+                    this.uninstallFilter(payload.params[0], end);
                 });
                 return;
             default:
                 next();
                 return;
         }
-    };
-    FilterSubprovider.prototype.newBlockFilter = function (cb) {
-        var _this = this;
-        this._getBlockNumber(function (err, blockNumber) {
+    }
+    newBlockFilter(cb) {
+        this._getBlockNumber((err, blockNumber) => {
             if (err) {
                 return cb(err);
             }
-            var filter = new block_filter_1.default({
-                blockNumber: blockNumber,
+            const filter = new BlockFilter({
+                blockNumber,
             });
-            var newBlockHandler = filter.update.bind(filter);
-            _this.engine.on('block', newBlockHandler);
-            var destroyHandler = function () {
-                _this.engine.removeListener('block', newBlockHandler);
+            const newBlockHandler = filter.update.bind(filter);
+            this.engine.on('block', newBlockHandler);
+            const destroyHandler = () => {
+                this.engine.removeListener('block', newBlockHandler);
             };
-            _this.filterIndex++;
-            _this.filters[_this.filterIndex] = filter;
-            _this.filterDestroyHandlers[_this.filterIndex] = destroyHandler;
-            var hexFilterIndex = eth_util_1.intToHex(_this.filterIndex);
+            this.filterIndex++;
+            this.filters[this.filterIndex] = filter;
+            this.filterDestroyHandlers[this.filterIndex] = destroyHandler;
+            const hexFilterIndex = intToHex(this.filterIndex);
             cb(null, hexFilterIndex);
         });
-    };
-    FilterSubprovider.prototype.newLogFilter = function (opts, done) {
-        var _this = this;
-        this._getBlockNumber(function (error, blockNumber) {
+    }
+    newLogFilter(opts, done) {
+        this._getBlockNumber((error, blockNumber) => {
             if (error) {
                 return done(error);
             }
-            var filter = new log_filter_1.default(opts);
-            var newLogHandler = filter.update.bind(filter);
-            var blockHandler = function (block, cb) {
-                _this._logsForBlock(block, function (err, logs) {
+            const filter = new LogFilter(opts);
+            const newLogHandler = filter.update.bind(filter);
+            const blockHandler = (block, cb) => {
+                this._logsForBlock(block, (err, logs) => {
                     if (err) {
                         return cb(err);
                     }
@@ -134,19 +113,18 @@ var FilterSubprovider = /** @class */ (function (_super) {
                     cb();
                 });
             };
-            _this.filterIndex++;
-            _this.asyncBlockHandlers[_this.filterIndex] = blockHandler;
-            _this.filters[_this.filterIndex] = filter;
-            var hexFilterIndex = eth_util_1.intToHex(_this.filterIndex);
+            this.filterIndex++;
+            this.asyncBlockHandlers[this.filterIndex] = blockHandler;
+            this.filters[this.filterIndex] = filter;
+            const hexFilterIndex = intToHex(this.filterIndex);
             done(null, hexFilterIndex);
         });
-    };
-    FilterSubprovider.prototype.newPendingTransactionFilter = function (done) {
-        var _this = this;
-        var filter = new pending_tx_filter_1.default();
-        var newTxHandler = filter.update.bind(filter);
-        var blockHandler = function (block, cb) {
-            _this._txHashesForBlock(block, function (err, txs) {
+    }
+    newPendingTransactionFilter(done) {
+        const filter = new PendingTransactionFilter();
+        const newTxHandler = filter.update.bind(filter);
+        const blockHandler = (block, cb) => {
+            this._txHashesForBlock(block, (err, txs) => {
                 if (err) {
                     return cb(err);
                 }
@@ -157,23 +135,23 @@ var FilterSubprovider = /** @class */ (function (_super) {
         this.filterIndex++;
         this.asyncPendingBlockHandlers[this.filterIndex] = blockHandler;
         this.filters[this.filterIndex] = filter;
-        var hexFilterIndex = eth_util_1.intToHex(this.filterIndex);
+        const hexFilterIndex = intToHex(this.filterIndex);
         done(null, hexFilterIndex);
-    };
-    FilterSubprovider.prototype.getFilterChanges = function (hexFilterId, cb) {
-        var filterId = parseInt(hexFilterId, 16);
-        var filter = this.filters[filterId];
+    }
+    getFilterChanges(hexFilterId, cb) {
+        const filterId = parseInt(hexFilterId, 16);
+        const filter = this.filters[filterId];
         // if (!filter) { console.warn('FilterSubprovider - no filter with that id:', hexFilterId); }
         if (!filter) {
             return cb(null, []);
         }
-        var results = filter.getChanges();
+        const results = filter.getChanges();
         filter.clearChanges();
         cb(null, results);
-    };
-    FilterSubprovider.prototype.getFilterLogs = function (hexFilterId, cb) {
-        var filterId = parseInt(hexFilterId, 16);
-        var filter = this.filters[filterId];
+    }
+    getFilterLogs(hexFilterId, cb) {
+        const filterId = parseInt(hexFilterId, 16);
+        const filter = this.filters[filterId];
         // if (!filter) { console.warn('FilterSubprovider - no filter with that id:', hexFilterId); }
         if (!filter) {
             return cb(null, []);
@@ -187,7 +165,7 @@ var FilterSubprovider = /** @class */ (function (_super) {
                         address: filter.address,
                         topics: filter.topics,
                     }],
-            }, function (err, res) {
+            }, (err, res) => {
                 if (err) {
                     return cb(err);
                 }
@@ -197,16 +175,16 @@ var FilterSubprovider = /** @class */ (function (_super) {
         else {
             cb(null, []);
         }
-    };
-    FilterSubprovider.prototype.uninstallFilter = function (hexFilterId, cb) {
-        var filterId = parseInt(hexFilterId, 16);
-        var filter = this.filters[filterId];
+    }
+    uninstallFilter(hexFilterId, cb) {
+        const filterId = parseInt(hexFilterId, 16);
+        const filter = this.filters[filterId];
         if (!filter) {
             cb(null, false);
             return;
         }
         this.filters[filterId].removeAllListeners();
-        var destroyHandler = this.filterDestroyHandlers[filterId];
+        const destroyHandler = this.filterDestroyHandlers[filterId];
         delete this.filters[filterId];
         delete this.asyncBlockHandlers[filterId];
         delete this.asyncPendingBlockHandlers[filterId];
@@ -215,51 +193,50 @@ var FilterSubprovider = /** @class */ (function (_super) {
             destroyHandler();
         }
         cb(null, true);
-    };
-    FilterSubprovider.prototype.checkForPendingBlocks = function () {
-        var _this = this;
+    }
+    checkForPendingBlocks() {
         if (this.checkForPendingBlocksActive) {
             return;
         }
-        var activePendingTxFilters = !!Object.keys(this.asyncPendingBlockHandlers).length;
+        const activePendingTxFilters = !!Object.keys(this.asyncPendingBlockHandlers).length;
         if (activePendingTxFilters) {
             this.checkForPendingBlocksActive = true;
             this.emitPayload({
                 method: 'eth_getBlockByNumber',
                 params: ['pending', true],
-            }, function (err, res) {
+            }, (err, res) => {
                 if (err) {
-                    _this.checkForPendingBlocksActive = false;
+                    this.checkForPendingBlocksActive = false;
                     // console.error(err);
                     return;
                 }
-                _this.onNewPendingBlock(res.result, function () {
+                this.onNewPendingBlock(res.result, () => {
                     // if (err) { console.error(err); }
-                    _this.checkForPendingBlocksActive = false;
-                    setTimeout(_this.checkForPendingBlocks.bind(_this), _this.pendingBlockTimeout);
+                    this.checkForPendingBlocksActive = false;
+                    setTimeout(this.checkForPendingBlocks.bind(this), this.pendingBlockTimeout);
                 });
             });
         }
-    };
-    FilterSubprovider.prototype.onNewPendingBlock = function (block, cb) {
+    }
+    onNewPendingBlock(block, cb) {
         // update filters
-        var updaters = valuesFor(this.asyncPendingBlockHandlers)
-            .map(function (fn) { return fn.bind(null, block); });
-        async_1.default.parallel(updaters, cb);
-    };
-    FilterSubprovider.prototype._getBlockNumber = function (cb) {
-        var blockNumber = bufferToNumberHex(this.engine.currentBlock.number);
+        const updaters = valuesFor(this.asyncPendingBlockHandlers)
+            .map((fn) => fn.bind(null, block));
+        async.parallel(updaters, cb);
+    }
+    _getBlockNumber(cb) {
+        const blockNumber = bufferToNumberHex(this.engine.currentBlock.number);
         cb(null, blockNumber);
-    };
-    FilterSubprovider.prototype._logsForBlock = function (block, cb) {
-        var blockNumber = bufferToNumberHex(block.number);
+    }
+    _logsForBlock(block, cb) {
+        const blockNumber = bufferToNumberHex(block.number);
         this.emitPayload({
             method: 'eth_getLogs',
             params: [{
                     fromBlock: blockNumber,
                     toBlock: blockNumber,
                 }],
-        }, function (err, response) {
+        }, (err, response) => {
             if (err) {
                 return cb(err);
             }
@@ -268,9 +245,9 @@ var FilterSubprovider = /** @class */ (function (_super) {
             }
             cb(null, response.result);
         });
-    };
-    FilterSubprovider.prototype._txHashesForBlock = function (block, cb) {
-        var txs = block.transactions;
+    }
+    _txHashesForBlock(block, cb) {
+        const txs = block.transactions;
         // short circuit if empty
         if (txs.length === 0) {
             return cb(null, []);
@@ -281,24 +258,22 @@ var FilterSubprovider = /** @class */ (function (_super) {
             // txs are obj, need to map to hashes
         }
         else {
-            var results = txs.map(function (tx) { return tx.hash; });
+            const results = txs.map((tx) => tx.hash);
             cb(null, results);
         }
-    };
-    return FilterSubprovider;
-}(subprovider_1.default));
-exports.default = FilterSubprovider;
+    }
+}
 // util
 function bufferToNumberHex(buffer) {
     return stripLeadingZero(buffer.toString('hex'));
 }
 function stripLeadingZero(hexNum) {
-    var stripped = eth_util_1.stripHexPrefix(hexNum);
+    let stripped = stripHexPrefix(hexNum);
     while (stripped[0] === '0') {
         stripped = stripped.substr(1);
     }
-    return "0x" + stripped;
+    return `0x${stripped}`;
 }
 function valuesFor(obj) {
-    return Object.keys(obj).map(function (key) { return obj[key]; });
+    return Object.keys(obj).map((key) => obj[key]);
 }

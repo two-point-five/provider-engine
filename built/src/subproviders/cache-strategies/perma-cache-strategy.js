@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var clone_1 = require("clone");
+var clone = require("clone");
 var rpc_cache_utils_1 = require("../../util/rpc-cache-utils");
 var cache_strategy_1 = require("./cache-strategy");
 var PermaCacheStrategy = /** @class */ (function (_super) {
@@ -43,7 +43,7 @@ var PermaCacheStrategy = /** @class */ (function (_super) {
         // send it back down to the client (where it will be recached.)
         var cacheIsEarlyEnough = compareHex(requestedBlockNumber, cached.blockNumber) >= 0;
         if (cacheIsEarlyEnough) {
-            var clonedValue = clone_1.default(cached.result);
+            var clonedValue = clone(cached.result);
             return hit(null, clonedValue);
         }
         else {
@@ -53,7 +53,7 @@ var PermaCacheStrategy = /** @class */ (function (_super) {
     PermaCacheStrategy.prototype.cacheResult = function (payload, result, requestedBlockNumber, callback) {
         var identifier = rpc_cache_utils_1.cacheIdentifierForPayload(payload);
         if (result) {
-            var clonedValue = clone_1.default(result);
+            var clonedValue = clone(result);
             this.cache[identifier] = {
                 blockNumber: requestedBlockNumber,
                 result: clonedValue,

@@ -1,39 +1,43 @@
-import extend from 'xtend';
-import { intToHex, bufferToHex, toBuffer, stripHexPrefix, addHexPrefix } from '../../src/util/eth-util.js';
-import FixtureProvider from '../../src/subproviders/fixture.js';
+import extend = require('xtend');
+import FixtureProvider from '../../src/subproviders/fixture';
+import { addHexPrefix, bufferToHex, intToHex, stripHexPrefix, toBuffer } from '../../src/util/eth-util';
 
 export default class TestBlockProvider extends FixtureProvider {
+
+  public _blockChain: any;
+  public _pendingTxs: any[];
+  public _currentBlock?: any;
+
   constructor() {
-    super();
-    const self = this;
-    self._blockChain = {};
-    self._pendingTxs = [];
-    self.nextBlock();
-    self.staticResponses = {
-      eth_blockNumber: function(payload, next, end) {
-        const block = self._currentBlock;
+    super({});
+    this._blockChain = {};
+    this._pendingTxs = [];
+    this.nextBlock();
+    this.staticResponses = {
+      eth_blockNumber: (payload, next, end) => {
+        const block = this._currentBlock;
         const result = (block && block.number) || null;
         setTimeout(() => end(null, result));
       },
-      eth_getBlockByNumber: function(payload, next, end){
+      eth_getBlockByNumber: (payload, next, end) => {
         const blockRef = payload.params[0];
-        const result = self.getBlockByRef(blockRef);
+        const result = this.getBlockByRef(blockRef);
         // return result asynchronously
         setTimeout(() => end(null, result));
       },
-      eth_getLogs: function(payload, next, end){
-        const transactions = self._currentBlock.transactions;
+      eth_getLogs: (payload, next, end) => {
+        const transactions = this._currentBlock.transactions;
         // return result asynchronously
         setTimeout(() => end(null, transactions));
       },
     };
   }
 
-  createBlock(blockParams, prevBlock, txs) {
+  public createBlock(blockParams?, prevBlock?, txs?) {
     blockParams = blockParams || {};
     txs = txs || [];
-    var defaultNumber = prevBlock ? this.incrementHex(prevBlock.number) : '0x1';
-    var defaultGasLimit = intToHex(4712388);
+    const defaultNumber = prevBlock ? this.incrementHex(prevBlock.number) : '0x1';
+    const defaultGasLimit = intToHex(4712388);
     return extend({
       // defaults
       number:            defaultNumber,
@@ -59,66 +63,63 @@ export default class TestBlockProvider extends FixtureProvider {
     }, blockParams);
   }
 
-  incrementHex(hexString){
-    return stripLeadingZeroes(intToHex(Number(hexString)+1));
+  public incrementHex(hexString) {
+    return stripLeadingZeroes(intToHex(Number(hexString) + 1));
   }
 
-  getBlockByRef(blockRef){
-    const self = this;
+  public getBlockByRef(blockRef) {
     if (blockRef === 'latest') {
-      return self._currentBlock;
+      return this._currentBlock;
     } else {
       // if present, return block at reference
-      let block = self._blockChain[blockRef];
-      if (block) return block;
+      let block = this._blockChain[blockRef];
+      if (block) { return block; }
       // check if we should create the new block
-      const blockNum = Number(blockRef)
-      if (blockNum > Number(self._currentBlock.number)) return;
+      const blockNum = Number(blockRef);
+      if (blockNum > Number(this._currentBlock.number)) { return; }
       // create, store, and return the new block
-      block = self.createBlock({ number: blockRef })
-      self._blockChain[blockRef] = block;
+      block = this.createBlock({ number: blockRef });
+      this._blockChain[blockRef] = block;
       return block;
     }
   }
 
-  nextBlock(blockParams){
-    const self = this;
-    const newBlock = self.createBlock(blockParams, self._currentBlock, self._pendingTxs);
-    self._pendingTxs = [];
-    self._currentBlock = newBlock;
-    self._blockChain[newBlock.number] = newBlock;
-    return self._currentBlock;
+  public nextBlock(blockParams?) {
+    const newBlock = this.createBlock(blockParams, this._currentBlock, this._pendingTxs);
+    this._pendingTxs = [];
+    this._currentBlock = newBlock;
+    this._blockChain[newBlock.number] = newBlock;
+    return this._currentBlock;
   }
 
-  addTx(txParams){
-    const self = this;
-    var newTx = extend({
+  public addTx(txParams) {
+    const newTx = extend({
       // defaults
       address: randomHash(),
       topics: [
         randomHash(),
         randomHash(),
-        randomHash()
+        randomHash(),
       ],
       data: randomHash(),
       blockNumber: '0xdeadbeef',
       logIndex: '0xdeadbeef',
       blockHash: '0x7c337eac9e3ec7bc99a1d911d326389558c9086afca7480a19698a16e40b2e0a',
       transactionHash: '0xd81da851bd3f4094d52cb86929e2ea3732a60ba7c184b853795fc5710a68b5fa',
-      transactionIndex: '0x0'
+      transactionIndex: '0x0',
       // provided
-    }, txParams)
-    self._pendingTxs.push(newTx);
+    }, txParams);
+    this._pendingTxs.push(newTx);
     return newTx;
   }
 }
 
-function randomHash(){
-  return bufferToHex(toBuffer(Math.floor(Math.random()*Number.MAX_SAFE_INTEGER)));
+function randomHash() {
+  return bufferToHex(toBuffer(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)));
 }
 
-function stripLeadingZeroes (hexString) {
-  let strippedHex = stripHexPrefix(hexString)
+function stripLeadingZeroes(hexString) {
+  let strippedHex = stripHexPrefix(hexString);
   while (strippedHex[0] === '0') {
     strippedHex = strippedHex.substr(1);
   }

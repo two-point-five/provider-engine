@@ -1,5 +1,6 @@
 /**
- * Attempts to turn a value into a `Buffer`. As input it supports `Buffer`, `String`, `Number`, null/undefined, `BN` and other objects with a `toArray()` method.
+ * Attempts to turn a value into a `Buffer`. As input it supports
+ * `Buffer`, `String`, `Number`, null/undefined, `BN` and other objects with a `toArray()` method.
  * @param v the value
  */
 export declare function toBuffer(v: any): any;

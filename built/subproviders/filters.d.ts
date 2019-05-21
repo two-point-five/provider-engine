@@ -9,7 +9,7 @@ export default class FilterSubprovider extends Subprovider {
     protected _ready: Stoplight;
     protected pendingBlockTimeout: number;
     protected checkForPendingBlocksActive: boolean;
-    constructor(opts: any);
+    constructor(opts?: any);
     handleRequest(payload: any, next: any, end: any): void;
     newBlockFilter(cb: any): void;
     newLogFilter(opts: any, done: any): void;

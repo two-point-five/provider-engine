@@ -1,5 +1,5 @@
-import { assert } from './assert.js';
-import { addHexPrefix, bufferToInt, stripHexPrefix, toBuffer, unpad } from './eth-util.js';
+import { assert } from './assert';
+import { addHexPrefix, bufferToInt, stripHexPrefix, toBuffer, unpad } from './eth-util';
 
 /*
  * As per https://github.com/ethereum/wiki/wiki/JSON-RPC#hex-value-encoding

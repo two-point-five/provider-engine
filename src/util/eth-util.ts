@@ -1,10 +1,11 @@
-import BN from 'bn.js';
-import ethjsUtil from 'ethjs-util';
+import BN = require('bn.js');
+import ethjsUtil = require('ethjs-util');
 
 // Methods from ethereumjs-util
 
 /**
- * Attempts to turn a value into a `Buffer`. As input it supports `Buffer`, `String`, `Number`, null/undefined, `BN` and other objects with a `toArray()` method.
+ * Attempts to turn a value into a `Buffer`. As input it supports
+ * `Buffer`, `String`, `Number`, null/undefined, `BN` and other objects with a `toArray()` method.
  * @param v the value
  */
 export function toBuffer(v) {
@@ -16,6 +17,7 @@ export function toBuffer(v) {
         v = Buffer.from(ethjsUtil.padToEven(ethjsUtil.stripHexPrefix(v)), 'hex');
       } else {
         throw new Error(
+          // tslint:disable-next-line: max-line-length
           `Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: ${v}`,
         );
       }

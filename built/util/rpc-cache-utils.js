@@ -1,31 +1,24 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var json_stable_stringify_1 = require("json-stable-stringify");
-function cacheIdentifierForPayload(payload, opts) {
-    if (opts === void 0) { opts = {}; }
+export function cacheIdentifierForPayload(payload, opts = {}) {
     if (!canCache(payload)) {
         return null;
     }
-    var includeBlockRef = opts.includeBlockRef;
-    var params = includeBlockRef ? payload.params : paramsWithoutBlockTag(payload);
-    return payload.method + ':' + json_stable_stringify_1.default(params);
+    const { includeBlockRef } = opts;
+    const params = includeBlockRef ? payload.params : paramsWithoutBlockTag(payload);
+    return payload.method + ':' + stringify(params);
 }
-exports.cacheIdentifierForPayload = cacheIdentifierForPayload;
-function canCache(payload) {
+export function canCache(payload) {
     return cacheTypeForPayload(payload) !== 'never';
 }
-exports.canCache = canCache;
-function blockTagForPayload(payload) {
-    var index = blockTagParamIndex(payload);
+export function blockTagForPayload(payload) {
+    const index = blockTagParamIndex(payload);
     // Block tag param not passed.
     if (index >= payload.params.length) {
         return null;
     }
     return payload.params[index];
 }
-exports.blockTagForPayload = blockTagForPayload;
-function paramsWithoutBlockTag(payload) {
-    var index = blockTagParamIndex(payload);
+export function paramsWithoutBlockTag(payload) {
+    const index = blockTagParamIndex(payload);
     // Block tag param not passed.
     if (index >= payload.params.length) {
         return payload.params;
@@ -36,8 +29,7 @@ function paramsWithoutBlockTag(payload) {
     }
     return payload.params.slice(0, index);
 }
-exports.paramsWithoutBlockTag = paramsWithoutBlockTag;
-function blockTagParamIndex(payload) {
+export function blockTagParamIndex(payload) {
     switch (payload.method) {
         // blockTag is third param
         case 'eth_getStorageAt':
@@ -57,8 +49,7 @@ function blockTagParamIndex(payload) {
             return undefined;
     }
 }
-exports.blockTagParamIndex = blockTagParamIndex;
-function cacheTypeForPayload(payload) {
+export function cacheTypeForPayload(payload) {
     switch (payload.method) {
         // cache permanently
         case 'net_version':
@@ -133,4 +124,3 @@ function cacheTypeForPayload(payload) {
             return 'never';
     }
 }
-exports.cacheTypeForPayload = cacheTypeForPayload;

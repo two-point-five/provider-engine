@@ -1,31 +1,30 @@
-const test = require('tape');
-import ProviderEngine from '../src/index.js';
-import PassthroughProvider from './util/passthrough.js';
-import FixtureProvider from '../src/subproviders/fixture.js';
-import TestBlockProvider from './util/block.js';
-import { createPayload } from '../src/util/create-payload.js';
-const injectMetrics = require('./util/inject-metrics');
+import test = require('tape');
+import ProviderEngine from '../src/index';
+import FixtureProvider from '../src/subproviders/fixture';
+import { createPayload } from '../src/util/create-payload';
+import TestBlockProvider from './util/block';
+import injectMetrics from './util/inject-metrics';
+import PassthroughProvider from './util/passthrough';
 
-
-test('fallthrough test', function(t){
+test('fallthrough test', (t) => {
   t.plan(8);
 
   // handle nothing
-  var providerA = injectMetrics(new PassthroughProvider());
+  const providerA = injectMetrics(new PassthroughProvider());
   // handle "test_rpc"
-  var providerB = injectMetrics(new FixtureProvider({
+  const providerB = injectMetrics(new FixtureProvider({
     test_rpc: true,
   }));
   // handle block requests
-  var providerC = injectMetrics(new TestBlockProvider());
+  const providerC = injectMetrics(new TestBlockProvider());
 
-  var engine = new ProviderEngine();
+  const engine = new ProviderEngine();
   engine.addProvider(providerA);
   engine.addProvider(providerB);
   engine.addProvider(providerC);
 
   engine.start();
-  engine.sendAsync(createPayload({ method: 'test_rpc' }), function(err, response){
+  engine.sendAsync(createPayload({ method: 'test_rpc' }), (err, response) => {
     t.ifError(err, 'did not error');
     t.ok(response, 'has response');
 

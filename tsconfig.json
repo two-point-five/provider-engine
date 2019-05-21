@@ -3,7 +3,8 @@
       "outDir": "./built",
       "target": "es5",
       "declaration": true,
-      "resolveJsonModule": true
+      "resolveJsonModule": true,
+      "moduleResolution": "node"
   },
   "include": ["src"]
 }

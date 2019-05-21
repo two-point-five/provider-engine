@@ -1,21 +1,21 @@
-const test = require('tape');
-import ProviderEngine from '../../src/index.js';
-import FixtureProvider from '../../src/subproviders/fixture.js';
+import test = require('tape');
+import ProviderEngine from '../../src/index';
+import FixtureProvider from '../../src/subproviders/fixture';
 import SanitizerSubprovider from '../../src/subproviders/sanitizer';
-import TestBlockProvider from '../util/block.js';
+import TestBlockProvider from '../util/block';
 
-test('Sanitizer removes unknown keys', function(t) {
+test('Sanitizer removes unknown keys', (t) => {
   t.plan(8);
 
-  var engine = new ProviderEngine();
+  const engine = new ProviderEngine();
 
-  var sanitizer = new SanitizerSubprovider();
+  const sanitizer = new SanitizerSubprovider();
   engine.addProvider(sanitizer);
 
   // test sanitization
-  var checkSanitizer = new FixtureProvider({
+  const checkSanitizer = new FixtureProvider({
     test_unsanitized: (req, next, end) => {
-      if (req.method !== 'test_unsanitized') return next();
+      if (req.method !== 'test_unsanitized') { return next(); }
       const firstParam = payload.params[0];
       t.notOk(firstParam && firstParam.foo);
       t.equal(firstParam.gas, '0x01');
@@ -29,12 +29,12 @@ test('Sanitizer removes unknown keys', function(t) {
   engine.addProvider(checkSanitizer);
 
   // handle block requests
-  var blockProvider = new TestBlockProvider();
+  const blockProvider = new TestBlockProvider();
   engine.addProvider(blockProvider);
 
   engine.start();
 
-  var payload = {
+  const payload = {
     method: 'test_unsanitized',
     params: [{
       foo: 'bar',
@@ -49,7 +49,7 @@ test('Sanitizer removes unknown keys', function(t) {
     }],
   };
 
-  engine.sendAsync(payload, function (err, response) {
+  engine.sendAsync(payload, (err, response) => {
     engine.stop();
     t.notOk(err, 'no error');
     t.equal(response.result.baz, 'bam', 'result was received correctly');

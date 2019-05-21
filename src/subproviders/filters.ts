@@ -1,4 +1,4 @@
-import async from 'async';
+import async = require('async');
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';
@@ -24,7 +24,7 @@ export default class FilterSubprovider extends Subprovider {
   protected pendingBlockTimeout: number;
   protected checkForPendingBlocksActive: boolean;
 
-  constructor(opts) {
+  constructor(opts?) {
     super();
     opts = opts || {};
     this.filterIndex = 0;

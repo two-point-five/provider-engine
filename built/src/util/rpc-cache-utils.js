@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var json_stable_stringify_1 = require("json-stable-stringify");
+var stringify = require("json-stable-stringify");
 function cacheIdentifierForPayload(payload, opts) {
     if (opts === void 0) { opts = {}; }
     if (!canCache(payload)) {
@@ -8,7 +8,7 @@ function cacheIdentifierForPayload(payload, opts) {
     }
     var includeBlockRef = opts.includeBlockRef;
     var params = includeBlockRef ? payload.params : paramsWithoutBlockTag(payload);
-    return payload.method + ':' + json_stable_stringify_1.default(params);
+    return payload.method + ':' + stringify(params);
 }
 exports.cacheIdentifierForPayload = cacheIdentifierForPayload;
 function canCache(payload) {

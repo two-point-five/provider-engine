@@ -1,24 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // tslint:disable-next-line: no-empty
-var noop = function (err, result) { };
+const noop = (err, result) => { };
 // Works the same as async.parallel
-function parallel(fns, done) {
-    if (done === void 0) { done = noop; }
-    this.map(fns, function (fn, callback) {
+export function parallel(fns, done = noop) {
+    this.map(fns, (fn, callback) => {
         fn(callback);
     }, done);
 }
-exports.parallel = parallel;
 // Works the same as async.map
-function map(items, iterator, done) {
-    if (done === void 0) { done = noop; }
-    var results = [];
-    var failure = false;
-    var expected = items.length;
-    var actual = 0;
-    var createIntermediary = function (index) {
-        return function (err, result) {
+export function map(items, iterator, done = noop) {
+    const results = [];
+    let failure = false;
+    const expected = items.length;
+    let actual = 0;
+    const createIntermediary = (index) => {
+        return (err, result) => {
             // Return if we found a failure anywhere.
             // We can't stop execution of functions since they've already
             // been fired off; but we can prevent excessive handling of callbacks.
@@ -36,21 +31,19 @@ function map(items, iterator, done) {
             }
         };
     };
-    for (var i = 0; i < items.length; i++) {
-        var item = items[i];
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
         iterator(item, createIntermediary(i));
     }
     if (items.length === 0) {
         done(null, []);
     }
 }
-exports.map = map;
 // Works like async.eachSeries
-function eachSeries(items, iterator, done) {
-    if (done === void 0) { done = noop; }
-    var results = [];
-    var expected = items.length;
-    var current = -1;
+export function eachSeries(items, iterator, done = noop) {
+    const results = [];
+    const expected = items.length;
+    let current = -1;
     function callback(err, result) {
         if (err) {
             return done(err);
@@ -65,9 +58,8 @@ function eachSeries(items, iterator, done) {
     }
     function next() {
         current += 1;
-        var item = items[current];
+        const item = items[current];
         iterator(item, callback);
     }
     next();
 }
-exports.eachSeries = eachSeries;

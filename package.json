@@ -5,11 +5,9 @@
   "repository": "https://github.com/BitskiCo/provider-engine",
   "main": "buit/index.js",
   "scripts": {
-    "test": "babel-tape-runner test/index.js",
-    "prepublish": "npm run build && npm run bundle",
-    "build": "tsc && babel built -d dist/es5",
-    "bundle": "mkdir -p ./dist && npm run bundle-engine",
-    "bundle-engine": "browserify -s ProviderEngine -e built/index.js -t [ babelify --presets [ es2015 ] ] > dist/ProviderEngine.js"
+    "test": "ts-node node_modules/tape/bin/tape test/index.ts",
+    "prepublish": "npm run build",
+    "build": "tsc && babel built -d dist/es5"
   },
   "author": "",
   "license": "MIT",
@@ -41,6 +39,7 @@
     "browserify": "^16.1.1",
     "ethjs": "^0.3.6",
     "tape": "^4.4.0",
+    "ts-node": "^8.1.0",
     "typescript": "^3.4.5"
   },
   "browser": {

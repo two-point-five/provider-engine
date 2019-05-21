@@ -1,10 +1,12 @@
-const test = require('tape');
-import ProviderEngine from '../src/index.js';
-import FixtureProvider from '../src/subproviders/fixture.js';
-import CacheProvider from '../src/subproviders/cache.js';
-import TestBlockProvider from './util/block.js';
-import { createPayload } from '../src/util/create-payload.js';
-const injectMetrics = require('./util/inject-metrics');
+// tslint:disable: max-line-length
+
+import test = require('tape');
+import ProviderEngine from '../src/index';
+import CacheProvider from '../src/subproviders/cache';
+import FixtureProvider from '../src/subproviders/fixture';
+import { createPayload } from '../src/util/create-payload';
+import TestBlockProvider from './util/block';
+import injectMetrics from './util/inject-metrics';
 
 // skip cache
 
@@ -146,28 +148,27 @@ cacheTest('getStorageAt for different block should not cache', [{
   params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x4321'],
 }], false);
 
-
 // test helper for caching
 // 1. Sets up caching and data provider
 // 2. Performs first request
 // 3. Performs second request
 // 4. checks if cache hit or missed
 
-function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
+function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
   if (!Array.isArray(payloads)) {
     payloads = [payloads, payloads];
   }
 
-  test('cache - '+label, function(t){
+  test('cache - ' + label, (t) => {
     t.plan(12);
 
     // cache layer
-    var cacheProvider = injectMetrics(new CacheProvider());
+    const cacheProvider = injectMetrics(new CacheProvider());
     // handle balance
-    var dataProvider = injectMetrics(new FixtureProvider({
+    const dataProvider = injectMetrics(new FixtureProvider({
       eth_getBalance: '0xdeadbeef',
       eth_getCode: '6060604052600560005560408060156000396000f3606060405260e060020a60003504633fa4f245811460245780635524107714602c575b005b603660005481565b6004356000556022565b6060908152602090f3',
-      eth_getTransactionByHash: function(payload, next, end) {
+      eth_getTransactionByHash: (payload, next, end) => {
         // represents a pending tx
         if (payload.params[0] === '0x00000000000000000000000000000000000000000000000000deadbeefcafe00') {
           end(null, null);
@@ -204,9 +205,9 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       eth_getStorageAt: '0x00000000000000000000000000000000000000000000000000000000deadbeef',
     }));
     // handle dummy block
-    var blockProvider = injectMetrics(new TestBlockProvider());
+    const blockProvider = injectMetrics(new TestBlockProvider());
 
-    var engine = new ProviderEngine({
+    const engine = new ProviderEngine({
       pollingInterval: 20,
       pollingShouldUnref: true,
     });
@@ -228,7 +229,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       const handlingProvider = isBlockTest ? blockProvider : dataProvider;
 
       // begin cache test
-      cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, function(err, response) {
+      cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, (err, response) => {
         t.end();
       });
     });
@@ -239,47 +240,45 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest){
       blockProvider.nextBlock();
     }, 20);
 
-
-    function cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, cb) {
-      var method = payloads[0].method;
-      requestTwice(payloads, function(err, response){
+    function cacheCheck(_test, _engine, _cacheProvider, handlingProvider, _payloads, cb) {
+      const method = payloads[0].method;
+      requestTwice(payloads, (err, response) => {
         // first request
-        t.ifError(err || response.error && response.error.message, 'did not error');
-        t.ok(response, 'has response');
+        _test.ifError(err || response.error && response.error.message, 'did not error');
+        _test.ok(response, 'has response');
 
-        t.equal(cacheProvider.getWitnessed(method).length, 1, 'cacheProvider did see "'+method+'"');
-        t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "'+method+'"');
+        _test.equal(cacheProvider.getWitnessed(method).length, 1, 'cacheProvider did see "' + method + '"');
+        _test.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "' + method + '"');
 
-        t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "'+method+'"');
-        t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "'+method+'"');
+        _test.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "' + method + '"');
+        _test.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "' + method + '"');
 
-      }, function(err, response){
+      }, (err, response) => {
         // second request
-        t.ifError(err || response.error && response.error.message, 'did not error');
-        t.ok(response, 'has response');
+        _test.ifError(err || response.error && response.error.message, 'did not error');
+        _test.ok(response, 'has response');
 
         if (shouldHitCacheOnSecondRequest) {
-          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"');
-          t.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did handle "'+method+'"');
+          _test.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
+          _test.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did handle "' + method + '"');
 
-          t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did NOT see "'+method+'"');
-          t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did NOT handle "'+method+'"');
+          _test.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did NOT see "' + method + '"');
+          _test.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did NOT handle "' + method + '"');
         } else {
-          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "'+method+'"');
-          t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did handle "'+method+'"');
+          _test.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
+          _test.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did handle "' + method + '"');
 
-          t.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did NOT see "'+method+'"');
-          t.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did NOT handle "'+method+'"');
+          _test.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did NOT see "' + method + '"');
+          _test.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did NOT handle "' + method + '"');
         }
-
         cb();
       });
     }
 
-    function requestTwice(payloads, afterFirst, afterSecond){
-      engine.sendAsync(createPayload(payloads[0]), function(err, result){
+    function requestTwice(p, afterFirst, afterSecond) {
+      engine.sendAsync(createPayload(p[0]), (err, result) => {
         afterFirst(err, result);
-        engine.sendAsync(createPayload(payloads[1]), afterSecond);
+        engine.sendAsync(createPayload(p[1]), afterSecond);
       });
     }
 

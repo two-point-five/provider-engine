@@ -1,4 +1,4 @@
-import clone from 'clone';
+import clone = require('clone');
 import { cacheIdentifierForPayload, canCache } from '../../util/rpc-cache-utils';
 import CacheStrategy from './cache-strategy';
 

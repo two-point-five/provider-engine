@@ -13,12 +13,12 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var eachSeries_1 = require("async/eachSeries");
+var eachSeries = require("async/eachSeries");
 var map_1 = require("async/map");
-var eth_block_tracker_1 = require("eth-block-tracker");
+var PollingBlockTracker = require("eth-block-tracker");
 var events_1 = require("events");
 var create_payload_1 = require("./util/create-payload");
-var eth_util_js_1 = require("./util/eth-util.js");
+var eth_util_1 = require("./util/eth-util");
 var stoplight_1 = require("./util/stoplight");
 var Web3ProviderEngine = /** @class */ (function (_super) {
     __extends(Web3ProviderEngine, _super);
@@ -31,11 +31,11 @@ var Web3ProviderEngine = /** @class */ (function (_super) {
         var directProvider = {
             sendAsync: function (payload, callback) {
                 payload.skipCache = true;
-                this._handleAsync(payload, callback);
+                _this._handleAsync(payload, callback);
             },
         };
         var blockTrackerProvider = opts.blockTrackerProvider || directProvider;
-        _this._blockTracker = opts.blockTracker || new eth_block_tracker_1.default({
+        _this._blockTracker = opts.blockTracker || new PollingBlockTracker({
             provider: blockTrackerProvider,
             pollingInterval: opts.pollingInterval || 4000,
         });
@@ -114,7 +114,7 @@ var Web3ProviderEngine = /** @class */ (function (_super) {
             if (_result === void 0) { _result = undefined; }
             error = _error;
             result = _result;
-            eachSeries_1.default(stack, function (fn, callback) {
+            eachSeries(stack, function (fn, callback) {
                 if (fn) {
                     fn(error, result, callback);
                 }
@@ -169,24 +169,24 @@ exports.default = Web3ProviderEngine;
 // util
 function toBufferBlock(jsonBlock) {
     return {
-        number: eth_util_js_1.toBuffer(jsonBlock.number),
-        hash: eth_util_js_1.toBuffer(jsonBlock.hash),
-        parentHash: eth_util_js_1.toBuffer(jsonBlock.parentHash),
-        nonce: eth_util_js_1.toBuffer(jsonBlock.nonce),
-        mixHash: eth_util_js_1.toBuffer(jsonBlock.mixHash),
-        sha3Uncles: eth_util_js_1.toBuffer(jsonBlock.sha3Uncles),
-        logsBloom: eth_util_js_1.toBuffer(jsonBlock.logsBloom),
-        transactionsRoot: eth_util_js_1.toBuffer(jsonBlock.transactionsRoot),
-        stateRoot: eth_util_js_1.toBuffer(jsonBlock.stateRoot),
-        receiptsRoot: eth_util_js_1.toBuffer(jsonBlock.receiptRoot || jsonBlock.receiptsRoot),
-        miner: eth_util_js_1.toBuffer(jsonBlock.miner),
-        difficulty: eth_util_js_1.toBuffer(jsonBlock.difficulty),
-        totalDifficulty: eth_util_js_1.toBuffer(jsonBlock.totalDifficulty),
-        size: eth_util_js_1.toBuffer(jsonBlock.size),
-        extraData: eth_util_js_1.toBuffer(jsonBlock.extraData),
-        gasLimit: eth_util_js_1.toBuffer(jsonBlock.gasLimit),
-        gasUsed: eth_util_js_1.toBuffer(jsonBlock.gasUsed),
-        timestamp: eth_util_js_1.toBuffer(jsonBlock.timestamp),
+        number: eth_util_1.toBuffer(jsonBlock.number),
+        hash: eth_util_1.toBuffer(jsonBlock.hash),
+        parentHash: eth_util_1.toBuffer(jsonBlock.parentHash),
+        nonce: eth_util_1.toBuffer(jsonBlock.nonce),
+        mixHash: eth_util_1.toBuffer(jsonBlock.mixHash),
+        sha3Uncles: eth_util_1.toBuffer(jsonBlock.sha3Uncles),
+        logsBloom: eth_util_1.toBuffer(jsonBlock.logsBloom),
+        transactionsRoot: eth_util_1.toBuffer(jsonBlock.transactionsRoot),
+        stateRoot: eth_util_1.toBuffer(jsonBlock.stateRoot),
+        receiptsRoot: eth_util_1.toBuffer(jsonBlock.receiptRoot || jsonBlock.receiptsRoot),
+        miner: eth_util_1.toBuffer(jsonBlock.miner),
+        difficulty: eth_util_1.toBuffer(jsonBlock.difficulty),
+        totalDifficulty: eth_util_1.toBuffer(jsonBlock.totalDifficulty),
+        size: eth_util_1.toBuffer(jsonBlock.size),
+        extraData: eth_util_1.toBuffer(jsonBlock.extraData),
+        gasLimit: eth_util_1.toBuffer(jsonBlock.gasLimit),
+        gasUsed: eth_util_1.toBuffer(jsonBlock.gasUsed),
+        timestamp: eth_util_1.toBuffer(jsonBlock.timestamp),
         transactions: jsonBlock.transactions,
     };
 }

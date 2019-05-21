@@ -1,3 +1,4 @@
+// tslint:disable: no-var-requires
 require('./basic');
 require('./cache-utils');
 require('./cache');

@@ -1,5 +1,5 @@
-import extend from 'xtend';
-import { createRandomId } from './random-id.js';
+import extend = require('xtend');
+import { createRandomId } from './random-id';
 
 export function createPayload(data) {
   return extend({

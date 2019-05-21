@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var clone_1 = require("clone");
+var clone = require("clone");
 var rpc_cache_utils_1 = require("../util/rpc-cache-utils");
 var subprovider_1 = require("./subprovider");
 var InflightCacheSubprovider = /** @class */ (function (_super) {
@@ -39,8 +39,8 @@ var InflightCacheSubprovider = /** @class */ (function (_super) {
             next(function (err, result, cb) {
                 // complete inflight for cacheId
                 delete _this.inflightRequests[cacheId];
-                activeRequestHandlers.forEach(function (handler) { return handler(err, clone_1.default(result)); });
-                cb(err, clone_1.default(result));
+                activeRequestHandlers.forEach(function (handler) { return handler(err, clone(result)); });
+                cb(err, clone(result));
             });
         }
         else {

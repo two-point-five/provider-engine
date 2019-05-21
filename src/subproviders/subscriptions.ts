@@ -6,7 +6,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
 
   protected subscriptions: any;
 
-  constructor(opts) {
+  constructor(opts?) {
     super(opts);
     this.subscriptions = {};
   }

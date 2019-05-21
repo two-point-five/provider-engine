@@ -1,9 +1,9 @@
-import eachSeries from 'async/eachSeries';
+import eachSeries = require('async/eachSeries');
 import map from 'async/map';
-import PollingBlockTracker from 'eth-block-tracker';
+import PollingBlockTracker = require('eth-block-tracker');
 import { EventEmitter } from 'events';
 import { createPayload } from './util/create-payload';
-import { toBuffer } from './util/eth-util.js';
+import { toBuffer } from './util/eth-util';
 import Stoplight from './util/stoplight';
 
 export default class Web3ProviderEngine extends EventEmitter {
@@ -14,15 +14,14 @@ export default class Web3ProviderEngine extends EventEmitter {
   public currentBlockNumber: any;
   public _providers: any[];
 
-  constructor(opts) {
+  constructor(opts?) {
     super();
     this.setMaxListeners(30);
     // parse options
     opts = opts || {};
-
     // block polling
     const directProvider = {
-      sendAsync(payload, callback) {
+      sendAsync: (payload, callback) => {
         payload.skipCache = true;
         this._handleAsync(payload, callback);
       },

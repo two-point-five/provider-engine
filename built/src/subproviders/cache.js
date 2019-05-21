@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var bn_js_1 = require("bn.js");
+var BN = require("bn.js");
 var eth_util_1 = require("../util/eth-util");
 var rpc_cache_utils_1 = require("../util/rpc-cache-utils");
 var stoplight_1 = require("../util/stoplight");
@@ -119,7 +119,7 @@ var BlockCacheProvider = /** @class */ (function (_super) {
 }(subprovider_1.default));
 exports.default = BlockCacheProvider;
 function hexToBN(hex) {
-    return new bn_js_1.default(eth_util_1.toBuffer(hex));
+    return new BN(eth_util_1.toBuffer(hex));
 }
 function containsBlockhash(result) {
     if (!result) {
@@ -128,6 +128,6 @@ function containsBlockhash(result) {
     if (!result.blockHash) {
         return false;
     }
-    var hasNonZeroHash = hexToBN(result.blockHash).gt(new bn_js_1.default(0));
+    var hasNonZeroHash = hexToBN(result.blockHash).gt(new BN(0));
     return hasNonZeroHash;
 }

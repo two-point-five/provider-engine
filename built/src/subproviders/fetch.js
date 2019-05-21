@@ -13,12 +13,12 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var asyncify_1 = require("async/asyncify");
-var retry_1 = require("async/retry");
-var waterfall_1 = require("async/waterfall");
+var asyncify = require("async/asyncify");
+var retry = require("async/retry");
+var waterfall = require("async/waterfall");
 var cross_fetch_1 = require("cross-fetch");
 var json_rpc_error_1 = require("json-rpc-error");
-var promise_to_callback_1 = require("promise-to-callback");
+var promiseToCallback = require("promise-to-callback");
 var create_payload_1 = require("../util/create-payload");
 var subprovider_1 = require("./subprovider");
 var RETRIABLE_ERRORS = [
@@ -55,7 +55,7 @@ var RpcSource = /** @class */ (function (_super) {
         if (this.originHttpHeaderKey && originDomain) {
             reqParams.headers[this.originHttpHeaderKey] = originDomain;
         }
-        retry_1.default({
+        retry({
             times: 5,
             interval: 1000,
             errorFilter: isErrorRetriable,
@@ -72,17 +72,17 @@ var RpcSource = /** @class */ (function (_super) {
     };
     RpcSource.prototype._submitRequest = function (reqParams, done) {
         var targetUrl = this.rpcUrl;
-        promise_to_callback_1.default(cross_fetch_1.default(targetUrl, reqParams))(function (err, res) {
+        promiseToCallback(cross_fetch_1.default(targetUrl, reqParams))(function (err, res) {
             if (err) {
                 return done(err);
             }
             // continue parsing result
-            waterfall_1.default([
+            waterfall([
                 checkForHttpErrors,
                 // buffer body
-                function (cb) { return promise_to_callback_1.default(res.text())(cb); },
+                function (cb) { return promiseToCallback(res.text())(cb); },
                 // parse body
-                asyncify_1.default(function (rawBody) { return JSON.parse(rawBody); }),
+                asyncify(function (rawBody) { return JSON.parse(rawBody); }),
                 parseResponse,
             ], done);
             function checkForHttpErrors(cb) {

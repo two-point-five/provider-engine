@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var clone_1 = require("clone");
+var clone = require("clone");
 var eth_util_1 = require("../../util/eth-util");
 var rpc_cache_utils_1 = require("../../util/rpc-cache-utils");
 var cache_strategy_1 = require("./cache-strategy");
@@ -46,7 +46,7 @@ var BlockCacheStrategy = /** @class */ (function (_super) {
         var identifier = rpc_cache_utils_1.cacheIdentifierForPayload(payload);
         var cached = blockCache[identifier];
         if (cached) {
-            var clonedValue = clone_1.default(cached);
+            var clonedValue = clone(cached);
             return hit(null, clonedValue);
         }
         else {
@@ -57,7 +57,7 @@ var BlockCacheStrategy = /** @class */ (function (_super) {
         if (result) {
             var blockCache = this.getBlockCacheForPayload(payload, requestedBlockNumber);
             var identifier = rpc_cache_utils_1.cacheIdentifierForPayload(payload);
-            var clonedValue = clone_1.default(result);
+            var clonedValue = clone(result);
             blockCache[identifier] = clonedValue;
         }
         callback();
