@@ -1,4 +1,4 @@
-import async from 'async';
+import * as parallel from 'async/parallel';
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';
@@ -48,7 +48,7 @@ export default class FilterSubprovider extends Subprovider {
         this._ready.stop();
         // update filters
         const updaters = valuesFor(this.asyncBlockHandlers).map((fn) => fn.bind(null, block));
-        async.parallel(updaters, (err) => {
+        parallel(updaters, (err) => {
           // tslint:disable-next-line: no-console
           if (err) { console.error(err); }
           // unpause processing
@@ -241,9 +241,8 @@ export default class FilterSubprovider extends Subprovider {
 
   public onNewPendingBlock(block, cb) {
     // update filters
-    const updaters = valuesFor(this.asyncPendingBlockHandlers)
-    .map((fn) => fn.bind(null, block));
-    async.parallel(updaters, cb);
+    const updaters = valuesFor(this.asyncPendingBlockHandlers).map((fn) => fn.bind(null, block));
+    parallel(updaters, cb);
   }
 
   public _getBlockNumber(cb) {

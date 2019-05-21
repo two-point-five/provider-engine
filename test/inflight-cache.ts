@@ -1,4 +1,4 @@
-import asyncParallel = require('async/parallel');
+import * as asyncParallel from 'async/parallel';
 import test = require('tape');
 import ProviderEngine from '../src/index';
 import FixtureProvider from '../src/subproviders/fixture';

@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 import { bufferToHex, toBuffer } from '../util/eth-util';
 import { blockTagForPayload, cacheTypeForPayload } from '../util/rpc-cache-utils';
 import Stoplight from '../util/stoplight';

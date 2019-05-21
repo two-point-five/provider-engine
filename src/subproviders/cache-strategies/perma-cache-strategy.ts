@@ -1,4 +1,4 @@
-import clone from 'clone';
+import * as clone from 'clone';
 import { cacheIdentifierForPayload, canCache } from '../../util/rpc-cache-utils';
 import CacheStrategy from './cache-strategy';
 

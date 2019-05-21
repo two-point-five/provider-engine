@@ -1,6 +1,6 @@
-import eachSeries from 'async/eachSeries';
-import map from 'async/map';
-import PollingBlockTracker from 'eth-block-tracker';
+import * as eachSeries from 'async/eachSeries';
+import * as map from 'async/map';
+import * as PollingBlockTracker from 'eth-block-tracker';
 import { EventEmitter } from 'events';
 import { createPayload } from './util/create-payload';
 import { toBuffer } from './util/eth-util';
