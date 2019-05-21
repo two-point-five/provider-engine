@@ -7,7 +7,7 @@
  * https://github.com/ethereum/go-ethereum/wiki/Gas-Price-Oracle
  */
 
-import map from 'async/map';
+import map = require('async/map');
 import Subprovider from './subprovider';
 
 export default class GaspriceProvider extends Subprovider {

@@ -1,9 +1,9 @@
-import asyncify from 'async/asyncify';
-import retry from 'async/retry';
-import waterfall from 'async/waterfall';
+import asyncify = require('async/asyncify');
+import retry = require('async/retry');
+import waterfall = require('async/waterfall');
 import fetch from 'cross-fetch';
 import JsonRpcError from 'json-rpc-error';
-import promiseToCallback from 'promise-to-callback';
+import promiseToCallback = require('promise-to-callback');
 import { createPayload } from '../util/create-payload';
 import Subprovider from './subprovider';
 

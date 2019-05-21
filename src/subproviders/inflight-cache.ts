@@ -1,4 +1,4 @@
-import clone from 'clone';
+import clone = require('clone');
 import { cacheIdentifierForPayload } from '../util/rpc-cache-utils';
 import Subprovider from './subprovider';
 
