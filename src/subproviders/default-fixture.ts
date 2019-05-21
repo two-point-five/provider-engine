@@ -2,7 +2,7 @@ import * as extend from 'xtend';
 import FixtureProvider from './fixture.js';
 
 export default class DefaultFixtures extends FixtureProvider {
-  constructor(opts) {
+  constructor(opts?) {
     opts = opts || {};
     const responses = extend({
       web3_clientVersion: 'ProviderEngine' + '/javascript',

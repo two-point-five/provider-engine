@@ -1,3 +1,4 @@
+export { default as Subprovider } from './subprovider';
 export { default as BlockCacheSubprovider } from './cache';
 export { default as DefaultFixtureSubprovider } from './default-fixture';
 export { default as FetchSubprovider } from './fetch';
@@ -7,5 +8,4 @@ export { default as GasPriceSubprovider } from './gasprice';
 export { default as InflightCacheSubprovider } from './inflight-cache';
 export { default as ProviderSubprovider } from './provider';
 export { default as SanitizerSubprovider } from './sanitizer';
-export { default as Subprovider } from './subprovider';
-export { default as Subscriptions } from './subscriptions';
+export { default as SubscriptionSubprovider } from './subscriptions';
