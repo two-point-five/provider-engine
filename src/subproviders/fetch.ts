@@ -31,7 +31,7 @@ export default class RpcSource extends Subprovider {
     const originDomain = payload.origin;
 
     // overwrite id to not conflict with other concurrent users
-    const newPayload = createPayload(payload);
+    const newPayload = this.createPayload(payload);
     // remove extra parameter from request
     delete newPayload.origin;
 
@@ -67,7 +67,11 @@ export default class RpcSource extends Subprovider {
     });
   }
 
-  public _submitRequest(reqParams, done) {
+  protected createPayload(payload) {
+    return createPayload(payload);
+  }
+
+  protected _submitRequest(reqParams, done) {
     const targetUrl = this.rpcUrl;
 
     promiseToCallback(fetch(targetUrl, reqParams))((err, res) => {
