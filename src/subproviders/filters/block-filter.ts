@@ -20,7 +20,6 @@ export default class BlockFilter extends Filter {
   }
 
   public update(block) {
-    // console.log('BlockFilter - update')
     const blockHash = bufferToHex(block.hash);
     this.updates.push(blockHash);
     this.emit('data', block);

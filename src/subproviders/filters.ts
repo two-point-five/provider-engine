@@ -133,26 +133,22 @@ export default class FilterSubprovider extends Subprovider {
   }
 
   public newLogFilter(opts, done) {
-    this._getBlockNumber((error, blockNumber) => {
-      if (error) { return done(error); }
+    const filter = new LogFilter(opts);
+    const newLogHandler = filter.update.bind(filter);
+    const blockHandler = (block, cb) => {
+      this._logsForBlock(block, (err, logs) => {
+        if (err) { return cb(err); }
+        newLogHandler(logs);
+        cb();
+      });
+    };
 
-      const filter = new LogFilter(opts);
-      const newLogHandler = filter.update.bind(filter);
-      const blockHandler = (block, cb) => {
-        this._logsForBlock(block, (err, logs) => {
-          if (err) { return cb(err); }
-          newLogHandler(logs);
-          cb();
-        });
-      };
+    this.filterIndex++;
+    this.asyncBlockHandlers[this.filterIndex] = blockHandler;
+    this.filters[this.filterIndex] = filter;
 
-      this.filterIndex++;
-      this.asyncBlockHandlers[this.filterIndex] = blockHandler;
-      this.filters[this.filterIndex] = filter;
-
-      const hexFilterIndex = intToHex(this.filterIndex);
-      done(null, hexFilterIndex);
-    });
+    const hexFilterIndex = intToHex(this.filterIndex);
+    done(null, hexFilterIndex);
   }
 
   public newPendingTransactionFilter(done) {
@@ -220,6 +216,7 @@ export default class FilterSubprovider extends Subprovider {
     this.filters[filterId].removeAllListeners();
 
     const destroyHandler = this.filterDestroyHandlers[filterId];
+
     delete this.filters[filterId];
     delete this.asyncBlockHandlers[filterId];
     delete this.asyncPendingBlockHandlers[filterId];

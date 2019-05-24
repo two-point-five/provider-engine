@@ -25,7 +25,6 @@ export default class LogFilter extends Filter {
   }
 
   public update(logs) {
-    // console.log('LogFilter - update')
     // validate filter match
     const validLogs = [];
     logs.forEach((log) => {

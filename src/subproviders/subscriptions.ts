@@ -37,13 +37,12 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
 
       const id = parseInt(hexId, 16);
       this.subscriptions[id] = subscriptionType;
-
       this.filters[id].on('data', (results) => {
+        this.filters[id].clearChanges();
         if (!Array.isArray(results)) {
           results = [results];
         }
         results.forEach((r) => this._notificationHandler(hexId, subscriptionType, r));
-        this.filters[id].clearChanges();
       });
 
       if (subscriptionType === 'newPendingTransactions') {
