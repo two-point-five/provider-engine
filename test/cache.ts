@@ -209,7 +209,6 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
 
     const engine = new ProviderEngine({
       pollingInterval: 20,
-      pollingShouldUnref: true,
     });
 
     engine.addProvider(cacheProvider);

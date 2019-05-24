@@ -23,32 +23,37 @@ export interface JSONRPCRequest {
   origin?: any; // proprietary field, tells provider what origin value to add to http request
 }
 
+export interface ProviderEngineOptions {
+  blockTracker?: any;
+  blockTrackerProvider?: any;
+  pollingInterval?: number;
+}
+
 export type JSONRPCResponseHandler = (error: null | Error, response: JSONRPCResponse) => void;
 
 export default class Web3ProviderEngine extends EventEmitter {
 
-  public _blockTracker: PollingBlockTracker;
-  public _ready: Stoplight;
   public currentBlock: any;
-  public currentBlockNumber: any;
-  public _providers: Subprovider[];
 
-  constructor(opts?) {
+  protected _blockTracker: PollingBlockTracker;
+  protected _ready: Stoplight;
+  protected _providers: Subprovider[];
+  protected _running: boolean = false;
+
+  constructor(opts?: ProviderEngineOptions) {
     super();
     this.setMaxListeners(30);
     // parse options
     opts = opts || {};
     // block polling
     const directProvider = {
-      sendAsync: (payload, callback) => {
-        payload.skipCache = true;
-        this._handleAsync(payload, callback);
-      },
+      sendAsync: this._handleAsync.bind(this),
     };
     const blockTrackerProvider = opts.blockTrackerProvider || directProvider;
     this._blockTracker = opts.blockTracker || new PollingBlockTracker({
       provider: blockTrackerProvider,
       pollingInterval: opts.pollingInterval || 4000,
+      setSkipCacheFlag: true,
     });
 
     // set initialization blocker
@@ -59,25 +64,48 @@ export default class Web3ProviderEngine extends EventEmitter {
     this._providers = [];
   }
 
+  public isRunning(): boolean {
+    return this._running;
+  }
+
   public start() {
-    // handle new block
+    // trigger start
+    this._ready.go();
+
+    // on new block, request block body and emit as events
     this._blockTracker.on('latest', (blockNumber) => {
-      this._setCurrentBlockNumber(blockNumber);
+      // get block body
+      this._getBlockByNumber(blockNumber, (err, block) => {
+        if (err) {
+          this.emit('error', err);
+          return;
+        }
+        const bufferBlock = toBufferBlock(block);
+        // set current + emit "block" event
+        this._setCurrentBlock(bufferBlock);
+        // emit other events
+        this.emit('rawBlock', block);
+        this.emit('latest', block);
+      });
     });
 
-    // emit block events from the block tracker
+    // forward other events
     this._blockTracker.on('sync', this.emit.bind(this, 'sync'));
-    this._blockTracker.on('latest', this.emit.bind(this, 'latest'));
+    this._blockTracker.on('error', this.emit.bind(this, 'error'));
 
-    // unblock initialization after first block
-    this._blockTracker.once('latest', () => {
-      this._ready.go();
-    });
+    // update state
+    this._running = true;
+    // signal that we started
+    this.emit('start');
   }
 
   public stop() {
-    // stop block polling
+    // stop block polling by removing event listeners
     this._blockTracker.removeAllListeners();
+    // update state
+    this._running = false;
+    // signal that we stopped
+    this.emit('stop');
   }
 
   public addProvider(source: Subprovider) {
@@ -85,25 +113,39 @@ export default class Web3ProviderEngine extends EventEmitter {
     source.setEngine(this);
   }
 
-  public send(payload: JSONRPCRequest) {
-    throw new Error('Web3ProviderEngine does not support synchronous requests.');
-  }
-
-  public sendAsync(payload: JSONRPCRequest, cb: JSONRPCResponseHandler) {
-    this._ready.await(() => {
-
-      if (Array.isArray(payload)) {
-        // handle batch
-        map(payload, this._handleAsync.bind(this), cb);
-      } else {
-        // handle single
-        this._handleAsync(payload, cb);
-      }
-
+  // New send method
+  public send(method: string, params: any[]): Promise<any> {
+    const payload = {
+      id: 0,
+      jsonrpc: '2.0',
+      method,
+      params,
+    };
+    return new Promise((fulfill, reject) => {
+      this._ready.await(() => {
+        this._handleAsync(payload, (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(result);
+          }
+        });
+      });
     });
   }
 
-  public _handleAsync(payload: JSONRPCRequest, finished: JSONRPCResponseHandler) {
+  // Legacy sendAsync method
+  public sendAsync(payload: JSONRPCRequest, cb: JSONRPCResponseHandler) {
+    if (Array.isArray(payload)) {
+      // handle batch
+      map(payload, this._handleAsync.bind(this), cb);
+    } else {
+      // handle single
+      this._handleAsync(payload, cb);
+    }
+  }
+
+  protected _handleAsync(payload: JSONRPCRequest, finished: JSONRPCResponseHandler) {
     let currentProvider = -1;
     let result = null;
     let error = null;
@@ -165,23 +207,17 @@ export default class Web3ProviderEngine extends EventEmitter {
     next();
   }
 
-  // Once we detect a new block number, load the block data
-  public _setCurrentBlockNumber(blockNumber) {
-    const self = this;
-    self.currentBlockNumber = blockNumber;
-    // Make sure we skip the cache for this request
-    const payload = createPayload({ method: 'eth_getBlockByNumber', params: [blockNumber, false], skipCache: true });
-    self.sendAsync(payload, (err, result) => {
-      if (err) { return; }
-      const bufferBlock = toBufferBlock(result.result);
-      self._setCurrentBlock(bufferBlock);
+  protected _getBlockByNumber(blockNumber, cb) {
+    const req = createPayload({ method: 'eth_getBlockByNumber', params: [blockNumber, false], skipCache: true });
+    this._handleAsync(req, (err, res) => {
+      if (err) { return cb(err); }
+      return cb(null, res.result);
     });
   }
 
-  public _setCurrentBlock(block) {
-    const self = this;
-    self.currentBlock = block;
-    self.emit('block', block);
+  protected _setCurrentBlock(block) {
+    this.currentBlock = block;
+    this.emit('block', block);
   }
 
 }

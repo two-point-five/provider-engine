@@ -39,7 +39,7 @@ filterTest('log filter - basic', {
     testMeta.badTx = testMeta.blockProvider.addTx({
       topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
     });
-    const block = testMeta.block = testMeta.blockProvider.nextBlock();
+    testMeta.block = testMeta.blockProvider.nextBlock();
     cb();
   },
   function filterChangesOne(t, testMeta, response, cb) {
@@ -293,7 +293,6 @@ function filterTest(label, filterPayload, afterInstall, filterChangesOne?, filte
 
     const engine = testMeta.engine = new ProviderEngine({
       pollingInterval: 20,
-      pollingShouldUnref: false,
     });
     engine.addProvider(filterProvider);
     engine.addProvider(blockProvider);

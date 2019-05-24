@@ -182,8 +182,7 @@ function subscriptionTest(label, subscriptionPayload, afterInstall, subscription
     const blockProvider = testMeta.blockProvider = injectMetrics(new TestBlockProvider());
 
     const engine = testMeta.engine = new ProviderEngine({
-      pollingInterval: 20,
-      pollingShouldUnref: false,
+      pollingInterval: 100,
     });
     engine.addProvider(subscriptionSubprovider);
     engine.addProvider(blockProvider);
