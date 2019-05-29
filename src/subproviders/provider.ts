@@ -1,5 +1,5 @@
-import Subprovider from './subprovider';
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 
 interface Provider {
   sendAsync(payload: any, callback: (err, response) => void);
@@ -15,11 +15,7 @@ export default class ProviderSubprovider extends Subprovider {
     this.provider = provider;
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     this.provider.sendAsync(payload, (err, response) => {
       if (err) { return end(err); }
       if (response.error) { return end(new Error(response.error.message)); }

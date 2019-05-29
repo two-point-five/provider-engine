@@ -1,11 +1,11 @@
 import parallel from 'async/parallel';
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { intToHex, stripHexPrefix } from '../util/eth-util';
 import Stoplight from '../util/stoplight';
 import BlockFilter from './filters/block-filter';
 import LogFilter from './filters/log-filter';
 import PendingTransactionFilter from './filters/pending-tx-filter';
-import Subprovider from './subprovider';
 
 // handles the following RPC methods:
 //   eth_newBlockFilter
@@ -65,11 +65,7 @@ export default class FilterSubprovider extends Subprovider {
     });
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     switch (payload.method) {
 
       case 'eth_newBlockFilter':

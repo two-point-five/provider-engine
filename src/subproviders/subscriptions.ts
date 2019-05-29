@@ -1,4 +1,5 @@
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import { CompletionHandler, NextHandler } from '../subprovider';
 import { bufferToHex } from '../util/eth-util';
 import { bufferToQuantityHex } from '../util/rpc-hex-encoding';
 import FilterSubprovider, { FilterSubproviderOptions } from './filters';
@@ -12,11 +13,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
     this.subscriptions = {};
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     switch (payload.method) {
       case 'eth_subscribe':
         this.eth_subscribe(payload, end);

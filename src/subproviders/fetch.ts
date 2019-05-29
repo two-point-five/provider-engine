@@ -4,9 +4,9 @@ import waterfall from 'async/waterfall';
 import fetch from 'cross-fetch';
 import JsonRpcError from 'json-rpc-error';
 import promiseToCallback from 'promise-to-callback';
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { createPayload } from '../util/create-payload';
-import Subprovider from './subprovider';
 
 const RETRIABLE_ERRORS = [
   // ignore server overload errors
@@ -33,11 +33,7 @@ export default class FetchSubprovider extends Subprovider {
     this.originHttpHeaderKey = opts.originHttpHeaderKey;
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     const originDomain = payload.origin;
 
     // overwrite id to not conflict with other concurrent users

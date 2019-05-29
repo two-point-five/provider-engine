@@ -1,12 +1,12 @@
 import BN from 'bn.js';
 import Web3ProviderEngine from '..';
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { bufferToHex, toBuffer } from '../util/eth-util';
 import { blockTagForPayload, cacheTypeForPayload } from '../util/rpc-cache-utils';
 import Stoplight from '../util/stoplight';
 import BlockCacheStrategy from './cache-strategies/block-strategy';
 import ConditionalPermaCacheStrategy from './cache-strategies/conditional-perma-strategy';
-import Subprovider from './subprovider';
 
 export default class BlockCacheProvider extends Subprovider {
 
@@ -48,11 +48,7 @@ export default class BlockCacheProvider extends Subprovider {
     });
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     // skip cache if told to do so
     if (payload.skipCache) {
       // console.log('CACHE SKIP - skip cache if told to do so')

@@ -1,7 +1,7 @@
 import clone from 'clone';
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { cacheIdentifierForPayload } from '../util/rpc-cache-utils';
-import Subprovider from './subprovider';
 
 export default class InflightCacheSubprovider extends Subprovider {
 
@@ -12,11 +12,7 @@ export default class InflightCacheSubprovider extends Subprovider {
     this.inflightRequests = {};
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     const cacheId = cacheIdentifierForPayload(payload, { includeBlockRef: true });
 
     // if not cacheable, skip
@@ -34,7 +30,8 @@ export default class InflightCacheSubprovider extends Subprovider {
         // complete inflight for cacheId
         delete this.inflightRequests[cacheId];
         activeRequestHandlers.forEach((handler) => handler(err, clone(result)));
-        cb(err, clone(result));
+        result = clone(result);
+        cb();
       });
 
     } else {

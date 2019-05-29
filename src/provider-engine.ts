@@ -1,27 +1,10 @@
 import eachSeries from 'async/eachSeries';
-import map from 'async/map';
 import PollingBlockTracker from 'eth-block-tracker';
-import { EventEmitter } from 'events';
-import Subprovider from './subproviders/subprovider';
+import BaseProvider, { JSONRPCRequest, JSONRPCResponse, JSONRPCResponseHandler } from './base-provider';
+import { default as Subprovider, SubproviderNextCallback } from './subprovider';
 import { createPayload } from './util/create-payload';
 import { toBuffer } from './util/eth-util';
 import Stoplight from './util/stoplight';
-
-export interface JSONRPCResponse {
-  id: number;
-  jsonrpc: string;
-  error?: any;
-  result?: any;
-}
-
-export interface JSONRPCRequest {
-  id?: number;
-  jsonrpc?: string;
-  method: string;
-  params: any[];
-  skipCache?: boolean; // proprietary field, tells provider not to respond from cache
-  origin?: any; // proprietary field, tells provider what origin value to add to http request
-}
 
 export interface ProviderEngineOptions {
   blockTracker?: any;
@@ -29,9 +12,7 @@ export interface ProviderEngineOptions {
   pollingInterval?: number;
 }
 
-export type JSONRPCResponseHandler = (error: null | Error, response: JSONRPCResponse) => void;
-
-export default class Web3ProviderEngine extends EventEmitter {
+export default class Web3ProviderEngine extends BaseProvider {
 
   public currentBlock: any;
 
@@ -47,7 +28,13 @@ export default class Web3ProviderEngine extends EventEmitter {
     opts = opts || {};
     // block polling
     const directProvider = {
-      sendAsync: this._handleAsync.bind(this),
+      sendAsync: (req, cb) => {
+        this.sendPayload(req).then((res) => {
+          cb(null, res);
+        }).catch((err) => {
+          cb(err);
+        });
+      },
     };
     const blockTrackerProvider = opts.blockTrackerProvider || directProvider;
     this._blockTracker = opts.blockTracker || new PollingBlockTracker({
@@ -75,17 +62,16 @@ export default class Web3ProviderEngine extends EventEmitter {
     // on new block, request block body and emit as events
     this._blockTracker.on('latest', (blockNumber) => {
       // get block body
-      this._getBlockByNumber(blockNumber, (err, block) => {
-        if (err) {
-          this.emit('error', err);
-          return;
-        }
+      this._getBlockByNumber(blockNumber).then((blockResponse) => {
+        const block = blockResponse.result;
         const bufferBlock = toBufferBlock(block);
         // set current + emit "block" event
         this._setCurrentBlock(bufferBlock);
         // emit other events
         this.emit('rawBlock', block);
         this.emit('latest', block);
+      }).catch((err) => {
+        this.emit('error', err);
       });
     });
 
@@ -113,106 +99,94 @@ export default class Web3ProviderEngine extends EventEmitter {
     source.setEngine(this);
   }
 
-  // New send method
   public send(method: string, params: any[]): Promise<any> {
-    const payload = {
-      id: 0,
-      jsonrpc: '2.0',
-      method,
-      params,
-    };
+    // Wrap base class with Stoplight
     return new Promise((fulfill, reject) => {
       this._ready.await(() => {
-        this._handleAsync(payload, (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            fulfill(result);
-          }
-        });
+        super.send(method, params).then(fulfill, reject);
       });
     });
   }
 
-  // Legacy sendAsync method
   public sendAsync(payload: JSONRPCRequest, cb: JSONRPCResponseHandler) {
-    if (Array.isArray(payload)) {
-      // handle batch
-      map(payload, this._handleAsync.bind(this), cb);
-    } else {
-      // handle single
-      this._handleAsync(payload, cb);
-    }
+    // Wrap base class with Stoplight
+    this._ready.await(() => {
+      super.sendAsync(payload, cb);
+    });
   }
 
-  protected _handleAsync(payload: JSONRPCRequest, finished: JSONRPCResponseHandler) {
-    let currentProvider = -1;
-    let result = null;
-    let error = null;
+  // Actually perform the request
+  protected sendPayload(payload: JSONRPCRequest): Promise<JSONRPCResponse> {
+    return new Promise((fulfill, reject) => {
+      let currentProvider = -1;
+      let result = null;
+      let error = null;
 
-    const stack = [];
+      // Stack of subprovider next callbacks
+      const stack: SubproviderNextCallback[] = [];
 
-    const next = (after?) => {
-      currentProvider += 1;
-      stack.unshift(after);
-      // Bubbled down as far as we could go, and the request wasn't
-      // handled. Return an error.
-      if (currentProvider >= this._providers.length) {
-        // tslint:disable-next-line: max-line-length
-        const msg = `Request for method "${payload.method}" not handled by any subprovider. Please check your subprovider configuration to ensure this method is handled.`;
-        end(new Error(msg));
-      } else {
+      const next = (callback?: SubproviderNextCallback) => {
+        currentProvider += 1;
+
+        if (callback) {
+          // Insert in front since eachSeries traverses from front
+          stack.unshift(callback);
+        }
+
+        // Bubbled down as far as we could go, and the request wasn't
+        // handled. Return an error.
+        if (currentProvider >= this._providers.length) {
+          // tslint:disable-next-line: max-line-length
+          const msg = `Request for method "${payload.method}" not handled by any subprovider. Please check your subprovider configuration to ensure this method is handled.`;
+          end(new Error(msg));
+          return;
+        }
+
+        // Handle request in next subprovider
         try {
           const provider = this._providers[currentProvider];
           provider.handleRequest(payload, next, end);
         } catch (e) {
           end(e);
         }
-      }
-    };
+      };
 
-    const end = (_error: Error | undefined, _result: any | undefined = undefined) => {
-      error = _error;
-      result = _result;
-
-      eachSeries(stack, (fn, callback) => {
+      const notifySubprovider = (fn: SubproviderNextCallback, callback: () => void) => {
         if (fn) {
           fn(error, result, callback);
         } else {
           callback();
         }
-      }, () => {
-        // console.log('COMPLETED:', payload)
-        // console.log('RESULT: ', result)
+      };
 
-        const resultObj: any = {
-          id: payload.id,
-          jsonrpc: payload.jsonrpc,
-          result,
-        };
-
-        if (error != null) {
-          resultObj.error = {
-            message: error.stack || error.message || error,
-            code: -32000,
+      const end = (e: Error | null, r?: any) => {
+        error = e;
+        result = r;
+        // Call any callbacks from subproviders
+        eachSeries(stack, notifySubprovider).then(() => {
+          // Reconstruct JSONRPCResponse
+          const resultObj: JSONRPCResponse = {
+            id: payload.id,
+            jsonrpc: payload.jsonrpc,
+            result,
           };
-          // respond with both error formats
-          finished(error, resultObj);
-        } else {
-          finished(null, resultObj);
-        }
-      });
-    };
+          // Complete promise
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(resultObj);
+          }
+        });
+      };
 
-    next();
+      // Call next() to kick things off
+      next();
+    });
   }
 
-  protected _getBlockByNumber(blockNumber, cb) {
+  protected _getBlockByNumber(blockNumber): Promise<JSONRPCResponse> {
     const req = createPayload({ method: 'eth_getBlockByNumber', params: [blockNumber, false], skipCache: true });
-    this._handleAsync(req, (err, res) => {
-      if (err) { return cb(err); }
-      return cb(null, res.result);
-    });
+    return this.sendPayload(req);
   }
 
   protected _setCurrentBlock(block) {
