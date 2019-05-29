@@ -25,7 +25,9 @@ export default abstract class BaseProvider extends EventEmitter {
   // Modern send method
   public send(method: string, params: any[]): Promise<any> {
     const payload = createPayload({ method, params });
-    return this.sendPayload(payload);
+    return this.sendPayload(payload).then((response) => {
+      return response.result;
+    });
   }
 
   // Legacy sendAsync method
