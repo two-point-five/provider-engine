@@ -2,17 +2,13 @@
  * For Parity compatibility
  * removes irregular keys
  */
-import { JSONRPCRequest } from '../provider-engine';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { addHexPrefix } from '../util/eth-util';
-import Subprovider from './subprovider';
 
 export default class SanitizerSubprovider extends Subprovider {
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     const txParams = payload.params[0];
 
     if (typeof txParams === 'object' && !Array.isArray(txParams)) {

@@ -8,8 +8,8 @@
  */
 
 import map from 'async/map';
-import { JSONRPCRequest } from '../provider-engine';
-import Subprovider from './subprovider';
+import { JSONRPCRequest } from '../base-provider';
+import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 
 export interface GaspriceProviderOptions {
   numberOfBlocks?: number;
@@ -27,11 +27,7 @@ export default class GaspriceProvider extends Subprovider {
     this.delayInBlocks = opts.delayInBlocks || 5;
   }
 
-  public handleRequest(
-    payload: JSONRPCRequest,
-    next: (cb?) => void,
-    end: (error: Error | null, result?: any) => void,
-  ) {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     if (payload.method !== 'eth_gasPrice') {
       return next();
     }

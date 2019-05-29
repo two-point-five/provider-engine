@@ -1,4 +1,3 @@
-export { default as Subprovider } from './subprovider';
 export { default as BlockCacheSubprovider } from './cache';
 export { default as DefaultFixtureSubprovider } from './default-fixture';
 export { default as FetchSubprovider } from './fetch';
