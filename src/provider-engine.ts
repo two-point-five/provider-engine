@@ -16,10 +16,19 @@ export default class Web3ProviderEngine extends BaseProvider {
 
   public currentBlock: any;
 
+  // The latest block number we have received
+  public currentBlockNumber?: string;
+
   protected _blockTracker: PollingBlockTracker;
   protected _ready: Stoplight;
   protected _providers: Subprovider[];
   protected _running: boolean = false;
+
+  // Number of milliseconds to wait before retrying
+  private blockTimeout = 300;
+
+  // Maximum attempts to load a block
+  private maxBlockRetries = 3;
 
   constructor(opts?: ProviderEngineOptions) {
     super();
@@ -61,18 +70,8 @@ export default class Web3ProviderEngine extends BaseProvider {
 
     // on new block, request block body and emit as events
     this._blockTracker.on('latest', (blockNumber) => {
-      // get block body
-      this._getBlockByNumber(blockNumber).then((blockResponse) => {
-        const block = blockResponse.result;
-        const bufferBlock = toBufferBlock(block);
-        // set current + emit "block" event
-        this._setCurrentBlock(bufferBlock);
-        // emit other events
-        this.emit('rawBlock', block);
-        this.emit('latest', block);
-      }).catch((err) => {
-        this.emit('error', err);
-      });
+      this.currentBlockNumber = blockNumber;
+      this.loadBlock(blockNumber);
     });
 
     // forward other events
@@ -182,6 +181,36 @@ export default class Web3ProviderEngine extends BaseProvider {
       // Call next() to kick things off
       next();
     });
+  }
+
+  // Tries to get the block payload recursively
+  protected loadBlock(blockNumber: string, callCount: number = 0) {
+    this._getBlockByNumber(blockNumber).then((blockResponse) => {
+      // Result can be null if the block hasn't fully propagated to the nodes
+      if (blockResponse.result) {
+        this.updateBlock(blockResponse.result);
+      } else if (callCount < this.maxBlockRetries && blockNumber === this.currentBlockNumber) {
+        // Only call recursively if the current block number is still the same
+        // and if we are under the retry limit.
+        setTimeout(() => {
+          this.loadBlock(blockNumber, callCount + 1);
+        }, this.blockTimeout);
+      } else {
+        throw new Error(`Could not load block ${blockNumber} after 3 tries`);
+      }
+    }).catch((err) => {
+      this.emit('error', err);
+    });
+  }
+
+  // Parse the block into a buffer representation and update subscribers.
+  protected updateBlock(block: any) {
+    const bufferBlock = toBufferBlock(block);
+    // set current + emit "block" event
+    this._setCurrentBlock(bufferBlock);
+    // emit other events
+    this.emit('rawBlock', block);
+    this.emit('latest', block);
   }
 
   protected _getBlockByNumber(blockNumber): Promise<JSONRPCResponse> {
