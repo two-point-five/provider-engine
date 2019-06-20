@@ -80,3 +80,34 @@ engine.on('error', (err) => {
 // start polling for blocks
 engine.start();
 ```
+
+
+### Writing your own Subprovider
+
+It's easy to extend the functionality of this module by writing your own Subprovider instance.
+
+See [src/subprovider.ts](/blob/release/src/subprovider.ts) for the full interface.
+
+```typescript
+import { Subprovider } from '@bitski/provider-engine';
+
+export default class MySubprovider {
+
+  // Only requirement is to implement handleRequest
+  public handleRequest(payload, next, end) {
+    // The payload includes the original JSON RPC request
+    if (payload.method === 'eth_helloWorld') {
+      // Call end() to handle the request in this subprovider
+      end('hello world!');
+    } else {
+      // Call next() to fall-through to the next request in the stack
+      next();
+    }
+  }
+
+}
+```
+
+### Acknowlegements
+
+A special thanks to the folks at Metamask who conceived and wrote the original library.
