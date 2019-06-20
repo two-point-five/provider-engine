@@ -86,7 +86,7 @@ engine.start();
 
 It's easy to extend the functionality of this module by writing your own Subprovider instance.
 
-See [src/subprovider.ts](/blob/release/src/subprovider.ts) for the full interface.
+See [src/subprovider.ts](/src/subprovider.ts) for the full interface.
 
 ```typescript
 import { Subprovider } from '@bitski/provider-engine';
