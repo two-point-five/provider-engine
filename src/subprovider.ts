@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { JSONRPCRequest, JSONRPCResponseHandler } from '.';
 import { default as Web3ProviderEngine } from './provider-engine';
+import { BufferBlock } from './util/block-tracker';
 import { createPayload } from './util/create-payload';
 
 // Call this type to fallthrough to the next subprovider.
@@ -18,7 +19,7 @@ export type SubproviderNextCallback = (error: Error | null, result: any, callbac
 export default abstract class Subprovider extends EventEmitter {
 
   protected engine?: Web3ProviderEngine;
-  protected currentBlock?: any;
+  protected currentBlock?: BufferBlock;
 
   public setEngine(engine: Web3ProviderEngine) {
     this.engine = engine;
