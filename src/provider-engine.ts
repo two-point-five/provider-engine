@@ -1,9 +1,7 @@
 import eachSeries from 'async/eachSeries';
-import PollingBlockTracker from 'eth-block-tracker';
 import BaseProvider, { JSONRPCRequest, JSONRPCResponse, JSONRPCResponseHandler } from './base-provider';
 import { default as Subprovider, SubproviderNextCallback } from './subprovider';
-import { createPayload } from './util/create-payload';
-import { toBuffer } from './util/eth-util';
+import BlockTracker, { BufferBlock } from './util/block-tracker';
 import Stoplight from './util/stoplight';
 
 export interface ProviderEngineOptions {
@@ -14,27 +12,19 @@ export interface ProviderEngineOptions {
 
 export default class Web3ProviderEngine extends BaseProvider {
 
-  public currentBlock: any;
+  public currentBlock?: BufferBlock;
 
-  // The latest block number we have received
-  public currentBlockNumber?: string;
-
-  protected _blockTracker: PollingBlockTracker;
+  protected _blockTracker: BlockTracker;
   protected _ready: Stoplight;
   protected _providers: Subprovider[];
   protected _running: boolean = false;
-
-  // Number of milliseconds to wait before retrying
-  private blockTimeout = 300;
-
-  // Maximum attempts to load a block
-  private maxBlockRetries = 3;
 
   constructor(opts?: ProviderEngineOptions) {
     super();
     this.setMaxListeners(30);
     // parse options
     opts = opts || {};
+
     // block polling
     const directProvider = {
       sendAsync: (req, cb) => {
@@ -45,18 +35,22 @@ export default class Web3ProviderEngine extends BaseProvider {
         });
       },
     };
+
     const blockTrackerProvider = opts.blockTrackerProvider || directProvider;
-    this._blockTracker = opts.blockTracker || new PollingBlockTracker({
+    this._blockTracker = new BlockTracker({
       provider: blockTrackerProvider,
+      blockTracker: opts.blockTracker,
       pollingInterval: opts.pollingInterval || 4000,
-      setSkipCacheFlag: true,
     });
+
+    this._blockTracker.on('block', this._setCurrentBlock.bind(this));
+    this._blockTracker.on('sync', this.emit.bind(this, 'sync'));
+    this._blockTracker.on('rawBlock', this.emit.bind(this, 'rawBlock'));
+    this._blockTracker.on('latest', this.emit.bind(this, 'latest'));
+    this._blockTracker.on('error', this.emit.bind(this, 'error'));
 
     // set initialization blocker
     this._ready = new Stoplight();
-
-    // local state
-    this.currentBlock = null;
     this._providers = [];
   }
 
@@ -67,17 +61,8 @@ export default class Web3ProviderEngine extends BaseProvider {
   public start() {
     // trigger start
     this._ready.go();
-
-    // on new block, request block body and emit as events
-    this._blockTracker.on('latest', (blockNumber) => {
-      this.currentBlockNumber = blockNumber;
-      this.loadBlock(blockNumber);
-    });
-
-    // forward other events
-    this._blockTracker.on('sync', this.emit.bind(this, 'sync'));
-    this._blockTracker.on('error', this.emit.bind(this, 'error'));
-
+    // start tracking blocks
+    this._blockTracker.start();
     // update state
     this._running = true;
     // signal that we started
@@ -85,8 +70,8 @@ export default class Web3ProviderEngine extends BaseProvider {
   }
 
   public stop() {
-    // stop block polling by removing event listeners
-    this._blockTracker.removeAllListeners();
+    // stop block tracking
+    this._blockTracker.stop();
     // update state
     this._running = false;
     // signal that we stopped
@@ -183,70 +168,9 @@ export default class Web3ProviderEngine extends BaseProvider {
     });
   }
 
-  // Tries to get the block payload recursively
-  protected loadBlock(blockNumber: string, callCount: number = 0) {
-    this._getBlockByNumber(blockNumber).then((blockResponse) => {
-      // Result can be null if the block hasn't fully propagated to the nodes
-      if (blockResponse.result) {
-        this.updateBlock(blockResponse.result);
-      } else if (callCount < this.maxBlockRetries && blockNumber === this.currentBlockNumber) {
-        // Only call recursively if the current block number is still the same
-        // and if we are under the retry limit.
-        setTimeout(() => {
-          this.loadBlock(blockNumber, callCount + 1);
-        }, this.blockTimeout);
-      } else {
-        throw new Error(`Could not load block ${blockNumber} after 3 tries`);
-      }
-    }).catch((err) => {
-      this.emit('error', err);
-    });
+  protected _setCurrentBlock(bufferBlock: BufferBlock) {
+    this.currentBlock = bufferBlock;
+    this.emit('block', bufferBlock);
   }
 
-  // Parse the block into a buffer representation and update subscribers.
-  protected updateBlock(block: any) {
-    const bufferBlock = toBufferBlock(block);
-    // set current + emit "block" event
-    this._setCurrentBlock(bufferBlock);
-    // emit other events
-    this.emit('rawBlock', block);
-    this.emit('latest', block);
-  }
-
-  protected _getBlockByNumber(blockNumber): Promise<JSONRPCResponse> {
-    const req = createPayload({ method: 'eth_getBlockByNumber', params: [blockNumber, false], skipCache: true });
-    return this.sendPayload(req);
-  }
-
-  protected _setCurrentBlock(block) {
-    this.currentBlock = block;
-    this.emit('block', block);
-  }
-
-}
-
-// util
-
-function toBufferBlock(jsonBlock) {
-  return {
-    number:           toBuffer(jsonBlock.number),
-    hash:             toBuffer(jsonBlock.hash),
-    parentHash:       toBuffer(jsonBlock.parentHash),
-    nonce:            toBuffer(jsonBlock.nonce),
-    mixHash:          toBuffer(jsonBlock.mixHash),
-    sha3Uncles:       toBuffer(jsonBlock.sha3Uncles),
-    logsBloom:        toBuffer(jsonBlock.logsBloom),
-    transactionsRoot: toBuffer(jsonBlock.transactionsRoot),
-    stateRoot:        toBuffer(jsonBlock.stateRoot),
-    receiptsRoot:     toBuffer(jsonBlock.receiptRoot || jsonBlock.receiptsRoot),
-    miner:            toBuffer(jsonBlock.miner),
-    difficulty:       toBuffer(jsonBlock.difficulty),
-    totalDifficulty:  toBuffer(jsonBlock.totalDifficulty),
-    size:             toBuffer(jsonBlock.size),
-    extraData:        toBuffer(jsonBlock.extraData),
-    gasLimit:         toBuffer(jsonBlock.gasLimit),
-    gasUsed:          toBuffer(jsonBlock.gasUsed),
-    timestamp:        toBuffer(jsonBlock.timestamp),
-    transactions:     jsonBlock.transactions,
-  };
 }

@@ -157,7 +157,7 @@ subscriptionTest('block subscription - parsing large difficulty', {
       difficulty: '0xfffffffffffffffffffffffffffffffe',
     });
     // This is necessary to ensure we get the block we just created above
-    testMeta.engine._blockTracker.checkForLatestBlock().then(() => {
+    testMeta.engine._blockTracker.fetchLatest().then(() => {
       cb();
     });
   },
