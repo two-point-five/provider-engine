@@ -91,7 +91,7 @@ See [src/subprovider.ts](/blob/release/src/subprovider.ts) for the full interfac
 ```typescript
 import { Subprovider } from '@bitski/provider-engine';
 
-export default class MySubprovider {
+export default class MySubprovider extends Subprovider {
 
   // Only requirement is to implement handleRequest
   public handleRequest(payload, next, end) {
