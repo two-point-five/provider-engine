@@ -4,19 +4,16 @@ import { JSONRPCRequest } from '../base-provider';
 import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { bufferToHex, toBuffer } from '../util/eth-util';
 import { blockTagForPayload, cacheTypeForPayload } from '../util/rpc-cache-utils';
-import Stoplight from '../util/stoplight';
 import BlockCacheStrategy from './cache-strategies/block-strategy';
 import ConditionalPermaCacheStrategy from './cache-strategies/conditional-perma-strategy';
 
 export default class BlockCacheProvider extends Subprovider {
 
-  private _ready: Stoplight;
+  private isEnabled: boolean = false;
   private strategies: any;
 
   constructor() {
     super();
-    // set initialization blocker
-    this._ready = new Stoplight();
     this.strategies = {
       perma: new ConditionalPermaCacheStrategy({
         eth_getTransactionByHash: containsBlockhash,
@@ -29,22 +26,12 @@ export default class BlockCacheProvider extends Subprovider {
 
   // setup a block listener on 'setEngine'
   public setEngine(engine: Web3ProviderEngine) {
-    this.engine = engine;
-
-    const clearOldCache = (newBlock) => {
-      const previousBlock = this.currentBlock;
-      this.currentBlock = newBlock;
-      if (!previousBlock) { return; }
-      this.strategies.block.cacheRollOff(previousBlock);
-      this.strategies.fork.cacheRollOff(previousBlock);
-    };
-
+    super.setEngine(engine);
     // unblock initialization after first block
-    engine.once('block', (block) => {
-      this.currentBlock = block;
-      this._ready.go();
+    engine.once('block', () => {
+      this.isEnabled = true;
       // from now on, empty old cache every block
-      engine.on('block', clearOldCache);
+      engine.on('block', this.clearOldCache.bind(this));
     });
   }
 
@@ -61,11 +48,13 @@ export default class BlockCacheProvider extends Subprovider {
       return next();
     }
 
-    // wait for first block
-    this._ready.await(() => {
-      // actually handle the request
-      this._handleRequest(payload, next, end);
-    });
+    // Block cache should not start handling requests until blocks have been received.
+    if (!this.isEnabled) {
+      return next();
+    }
+
+    // actually handle the request
+    this._handleRequest(payload, next, end);
   }
 
   public _handleRequest(
@@ -110,6 +99,14 @@ export default class BlockCacheProvider extends Subprovider {
         strategy.cacheResult(payload, result, requestedBlockNumber, cb);
       });
     });
+  }
+
+  protected clearOldCache(newBlock) {
+    const previousBlock = this.currentBlock;
+    this.currentBlock = newBlock;
+    if (!previousBlock) { return; }
+    this.strategies.block.cacheRollOff(previousBlock);
+    this.strategies.fork.cacheRollOff(previousBlock);
   }
 }
 
