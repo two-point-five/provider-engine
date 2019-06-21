@@ -8,6 +8,7 @@ export interface ProviderEngineOptions {
   blockTracker?: any;
   blockTrackerProvider?: any;
   pollingInterval?: number;
+  disableBlockTracking?: boolean;
 }
 
 export default class Web3ProviderEngine extends BaseProvider {
@@ -17,6 +18,7 @@ export default class Web3ProviderEngine extends BaseProvider {
   protected _blockTracker: BlockTracker;
   protected _ready: Stoplight;
   protected _providers: Subprovider[];
+  protected _pollForBlocks: boolean = true;
   protected _running: boolean = false;
 
   constructor(opts?: ProviderEngineOptions) {
@@ -35,6 +37,10 @@ export default class Web3ProviderEngine extends BaseProvider {
         });
       },
     };
+
+    if (opts.disableBlockTracking === true) {
+      this._pollForBlocks = false;
+    }
 
     const blockTrackerProvider = opts.blockTrackerProvider || directProvider;
     this._blockTracker = new BlockTracker({
@@ -61,8 +67,12 @@ export default class Web3ProviderEngine extends BaseProvider {
   public start() {
     // trigger start
     this._ready.go();
-    // start tracking blocks
-    this._blockTracker.start();
+
+    if (this._pollForBlocks) {
+      // start tracking blocks
+      this._blockTracker.start();
+    }
+
     // update state
     this._running = true;
     // signal that we started

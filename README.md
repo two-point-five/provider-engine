@@ -35,7 +35,7 @@ The provider engine also handles caching of rpc request results.
 ```js
 import {
   default as ProviderEngine,
-  CacheSubprovider,
+  BlockCacheSubprovider,
   FixtureSubprovider,
   FilterSubprovider,
   FetchSubprovider
@@ -54,7 +54,7 @@ engine.addProvider(new FixtureSubprovider({
 }));
 
 // cache layer
-engine.addProvider(new CacheSubprovider());
+engine.addProvider(new BlockCacheSubprovider());
 
 // filters
 engine.addProvider(new FilterSubprovider());
