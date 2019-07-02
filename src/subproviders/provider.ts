@@ -1,3 +1,4 @@
+import JsonRpcError from 'json-rpc-error';
 import { JSONRPCRequest } from '../base-provider';
 import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 
@@ -18,7 +19,7 @@ export default class ProviderSubprovider extends Subprovider {
   public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     this.provider.sendAsync(payload, (err, response) => {
       if (err) { return end(err); }
-      if (response.error) { return end(new Error(response.error.message)); }
+      if (response.error) { return end(new JsonRpcError.InternalError(response.error)); }
       end(null, response.result);
     });
   }

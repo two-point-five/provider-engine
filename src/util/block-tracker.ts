@@ -1,6 +1,7 @@
 import PollingBlockTracker from 'eth-block-tracker';
 import { EventEmitter } from 'events';
 import { JSONRPCResponse } from '../base-provider';
+import { BlockTrackerError } from '../errors/block-tracker-error';
 import { createPayload } from './create-payload';
 import { toBuffer } from './eth-util';
 
@@ -129,7 +130,7 @@ export default class BlockTracker extends EventEmitter {
           this.loadBlock(blockNumber, callCount + 1);
         }, this.blockTimeout);
       } else {
-        throw new Error(`Could not load block ${blockNumber} after 3 tries`);
+        throw BlockTrackerError.BlockNotFound(blockNumber);
       }
     }).catch((err) => {
       // Don't retry for errors (provider should have already retried)

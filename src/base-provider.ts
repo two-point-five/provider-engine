@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { ProviderEngineError, ProviderEngineErrorCode } from './errors/provider-engine-error';
 import { createPayload } from './util/create-payload';
 
 export interface JSONRPCResponse {
@@ -48,13 +49,17 @@ export default abstract class BaseProvider extends EventEmitter {
   // Method to subscribe to a given subscription type
   public subscribe(subscribeMethod: string, subscriptionMethod: string, parameters: any): Promise<string> {
     // Override this with subscription implementation
-    return Promise.reject(new Error('Subscriptions are not supported'));
+    return Promise.reject(
+      new ProviderEngineError('Subscriptions are not supported', ProviderEngineErrorCode.UnsupportedFeature),
+    );
   }
 
   // Method to unsubscribe
   public unsubscribe(subscriptionId: string, unsubscribeMethod: string): Promise<boolean> {
     // Override this with unsubscribe implementation
-    return Promise.reject(new Error('Subscriptions are not supported'));
+    return Promise.reject(
+      new ProviderEngineError('Subscriptions are not supported', ProviderEngineErrorCode.UnsupportedFeature),
+    );
   }
 
   protected abstract sendPayload(payload: JSONRPCRequest): Promise<JSONRPCResponse>;

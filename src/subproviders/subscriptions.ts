@@ -1,4 +1,5 @@
 import { JSONRPCRequest } from '../base-provider';
+import { SubscriptionError } from '../errors/subscription-error';
 import { CompletionHandler, NextHandler } from '../subprovider';
 import { bufferToHex } from '../util/eth-util';
 import { bufferToQuantityHex } from '../util/rpc-hex-encoding';
@@ -62,7 +63,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
         break;
       case 'syncing':
       default:
-        cb(new Error('unsupported subscription type'));
+        cb(SubscriptionError.UnsupportedType(subscriptionType));
         return;
     }
   }
@@ -71,7 +72,7 @@ export default class SubscriptionSubprovider extends FilterSubprovider {
     const hexId = payload.params[0];
     const id = parseInt(hexId, 16);
     if (!this.subscriptions[id]) {
-      cb(new Error(`Subscription ID ${hexId} not found.`));
+      cb(SubscriptionError.NotFound(hexId));
     } else {
       this.uninstallFilter(hexId, (err, result) => {
         delete this.subscriptions[id];

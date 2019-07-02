@@ -16,7 +16,7 @@ export function toBuffer(v) {
       if (ethjsUtil.isHexString(v)) {
         v = Buffer.from(ethjsUtil.padToEven(ethjsUtil.stripHexPrefix(v)), 'hex');
       } else {
-        throw new Error(
+        throw new TypeError(
           // tslint:disable-next-line: max-line-length
           `Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: ${v}`,
         );
@@ -31,7 +31,7 @@ export function toBuffer(v) {
       // converts a BN to a Buffer
       v = Buffer.from(v.toArray());
     } else {
-      throw new Error('invalid type');
+      throw new TypeError(`invalid type: ${v}`);
     }
   }
   return v;
