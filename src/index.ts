@@ -14,4 +14,11 @@ export {
   CompletionHandler,
   SubproviderNextCallback,
 };
+
+// Errors
+export { BlockTrackerError, BlockTrackerErrorCode } from './errors/block-tracker-error';
+export { GasPriceError, GasPriceErrorCode } from './errors/gas-price-error';
+export { ProviderEngineError, ProviderEngineErrorCode } from './errors/provider-engine-error';
+export { SubscriptionError, SubscriptionErrorCode } from './errors/subscription-error';
+
 export * from './subproviders/index';

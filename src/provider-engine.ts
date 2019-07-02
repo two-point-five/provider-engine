@@ -1,5 +1,6 @@
 import eachSeries from 'async/eachSeries';
 import BaseProvider, { JSONRPCRequest, JSONRPCResponse, JSONRPCResponseHandler } from './base-provider';
+import { ProviderEngineError, ProviderEngineErrorCode } from './errors/provider-engine-error';
 import { default as Subprovider, SubproviderNextCallback } from './subprovider';
 import BlockTracker, { BufferBlock } from './util/block-tracker';
 import Stoplight from './util/stoplight';
@@ -131,8 +132,8 @@ export default class Web3ProviderEngine extends BaseProvider {
         // handled. Return an error.
         if (currentProvider >= this._providers.length) {
           // tslint:disable-next-line: max-line-length
-          const msg = `Request for method "${payload.method}" not handled by any subprovider. Please check your subprovider configuration to ensure this method is handled.`;
-          end(new Error(msg));
+          const msg = `Request for method "${payload.method}" not handled by any subprovider.`;
+          end(new ProviderEngineError(msg, ProviderEngineErrorCode.UnhandledRequest));
           return;
         }
 

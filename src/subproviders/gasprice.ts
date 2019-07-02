@@ -9,6 +9,7 @@
 
 import map from 'async/map';
 import { JSONRPCRequest } from '../base-provider';
+import { GasPriceError } from '../errors/gas-price-error';
 import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 
 export interface GaspriceProviderOptions {
@@ -45,7 +46,7 @@ export default class GaspriceProvider extends Subprovider {
         const p2 = { id: 0, jsonrpc: '2.0', method: 'eth_getBlockByNumber', params: [item, true] };
         this.emitPayload(p2, (err, blockRes) => {
           if (err) { return cb(err); }
-          if (!blockRes.result) { return cb(new Error(`GaspriceProvider - No block for "${item}"`)); }
+          if (!blockRes.result) { return cb(GasPriceError.BlockNotFound(item)); }
           cb(null, blockRes.result.transactions);
         });
       };
