@@ -10,6 +10,7 @@ export interface ProviderEngineOptions {
   blockTrackerProvider?: any;
   pollingInterval?: number;
   disableBlockTracking?: boolean;
+  debug?: boolean;
 }
 
 export default class Web3ProviderEngine extends BaseProvider {
@@ -54,7 +55,14 @@ export default class Web3ProviderEngine extends BaseProvider {
     this._blockTracker.on('sync', this.emit.bind(this, 'sync'));
     this._blockTracker.on('rawBlock', this.emit.bind(this, 'rawBlock'));
     this._blockTracker.on('latest', this.emit.bind(this, 'latest'));
-    this._blockTracker.on('error', this.emit.bind(this, 'error'));
+
+    // Handle errors instead of re-emitting, since they will throw otherwise
+    this._blockTracker.on('error', (error) => {
+      // Ignore errors from the block tracker unless debug is enabled
+      if (opts.debug) {
+        console.log('DEBUG: ' + error.message);
+      }
+    });
 
     // set initialization blocker
     this._ready = new Stoplight();

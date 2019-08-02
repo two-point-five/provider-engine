@@ -96,7 +96,9 @@ export default class BlockTracker extends EventEmitter {
   }
 
   public fetchLatest(): Promise<any> {
-    return this._blockTracker.checkForLatestBlock();
+    return this._blockTracker.checkForLatestBlock().catch((error) => {
+      this.emit('error', error);
+    });
   }
 
   protected createSubscriptions() {
