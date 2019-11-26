@@ -24,7 +24,7 @@ export type JSONRPCResponseHandler = (error: null | Error, response: JSONRPCResp
 export default abstract class BaseProvider extends EventEmitter {
 
   // Modern send method
-  public send(method: string, params: any[]): Promise<any> {
+  public send(method: string, params: any[] = []): Promise<any> {
     const payload = createPayload({ method, params });
     return this.sendPayload(payload).then((response) => {
       return response.result;
