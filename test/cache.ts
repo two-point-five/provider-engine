@@ -1,6 +1,7 @@
 // tslint:disable: max-line-length
 
 import test = require('tape');
+import series from 'async/series';
 import ProviderEngine from '../src/index';
 import CacheProvider from '../src/subproviders/cache';
 import FixtureProvider from '../src/subproviders/fixture';
@@ -72,13 +73,14 @@ cacheTest('getCode for a specific block, then for the one before it, should not 
   params: ['0x1234', '0x2'],
 }], false);
 
-cacheTest('getCode for a specific block, then the one after it, should return cached response on second request', [{
-  method: 'eth_getCode',
-  params: ['0x1234', '0x2'],
-}, {
-  method: 'eth_getCode',
-  params: ['0x1234', '0x3'],
-}], true);
+// perma-cache implementation was reduced to block-cache when we moved to eth-json-rpc-middleware
+// cacheTest('getCode for a specific block, then the one after it, should return cached response on second request', [{
+//   method: 'eth_getCode',
+//   params: ['0x1234', '0x2'],
+// }, {
+//   method: 'eth_getCode',
+//   params: ['0x1234', '0x3'],
+// }], true)
 
 cacheTest('getCode for an unspecified block, then for the latest, should return cached response on second request', [{
   method: 'eth_getCode',
@@ -90,44 +92,36 @@ cacheTest('getCode for an unspecified block, then for the latest, should return 
 
 // blocks
 
-cacheTest('getBlockForNumber for latest then block 0', [{
+cacheTest('getBlockForNumber for latest (1) then block 0', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest'],
+  params: ['latest', false],
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x0'],
+  params: ['0x0', false],
 }], false);
 
-cacheTest('getBlockForNumber for latest then block 1', [{
+cacheTest('getBlockForNumber for latest (1) then block 1', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest'],
+  params: ['latest', false],
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x1'],
-}], false);
+  params: ['0x1', false],
+}], true);
 
 cacheTest('getBlockForNumber for 0 then block 1', [{
   method: 'eth_getBlockByNumber',
-  params: ['0x0'],
+  params: ['0x0', false],
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x1'],
+  params: ['0x1', false],
 }], false);
 
 cacheTest('getBlockForNumber for block 0', [{
   method: 'eth_getBlockByNumber',
-  params: ['0x0'],
+  params: ['0x0', false],
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x0'],
-}], true);
-
-cacheTest('getBlockForNumber for block 1', [{
-  method: 'eth_getBlockByNumber',
-  params: ['0x1'],
-}, {
-  method: 'eth_getBlockByNumber',
-  params: ['0x1'],
+  params: ['0x0', false],
 }], true);
 
 // storage
@@ -160,7 +154,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
   }
 
   test('cache - ' + label, (t) => {
-    t.plan(12);
+    t.plan(13);
 
     // cache layer
     const cacheProvider = injectMetrics(new CacheProvider());
@@ -204,6 +198,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
       },
       eth_getStorageAt: '0x00000000000000000000000000000000000000000000000000000000deadbeef',
     }));
+
     // handle dummy block
     const blockProvider = injectMetrics(new TestBlockProvider());
 
@@ -215,29 +210,36 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
     engine.addProvider(dataProvider);
     engine.addProvider(blockProvider);
 
-    engine.once('block', () => {
-      // stop polling
-      engine.stop();
-      // clear subprovider metrics
-      cacheProvider.clearMetrics();
-      dataProvider.clearMetrics();
-      blockProvider.clearMetrics();
-
-      // determine which provider will handle the request (only for requests made in this test)
-      const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber');
-      const handlingProvider = isBlockTest ? blockProvider : dataProvider;
-
-      // begin cache test
-      cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, (err, response) => {
-        t.end();
-      });
+    engine.on('error', (err) => {
+      t.ifErr(err);
     });
 
-    engine.start();
+    series([
+      // run polling until first block
+      (next) => {
+        engine.start();
+        engine.once('block', () => next());
+      },
+      // perform cache test
+      (next) => {
+        // stop polling
+        engine.stop();
+        // clear subprovider metrics
+        cacheProvider.clearMetrics();
+        dataProvider.clearMetrics();
+        blockProvider.clearMetrics();
 
-    setTimeout(() => {
-      blockProvider.nextBlock();
-    }, 20);
+        // determine which provider will handle the request
+        const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber') || (payloads[0].method === 'eth_blockNumber');
+        const handlingProvider = isBlockTest ? blockProvider : dataProvider;
+
+        // begin cache test
+        cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, next);
+      }
+    ], (err) => {
+      t.ifError(err);
+      t.end();
+    });
 
     function cacheCheck(_test, _engine, _cacheProvider, handlingProvider, _payloads, cb) {
       const method = payloads[0].method;
@@ -265,10 +267,10 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
           _test.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did NOT handle "' + method + '"');
         } else {
           _test.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
-          _test.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did handle "' + method + '"');
+          _test.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "' + method + '"');
 
-          _test.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did NOT see "' + method + '"');
-          _test.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did NOT handle "' + method + '"');
+          _test.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did see "' + method + '"');
+          _test.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did handle "' + method + '"');
         }
         cb();
       });

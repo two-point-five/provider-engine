@@ -1,5 +1,4 @@
-
-export default function injectSubproviderMetrics(subprovider) {
+export default function injectSubproviderMetrics(subprovider): any {
   subprovider.getWitnessed = getWitnessed.bind(subprovider);
   subprovider.getHandled = getHandled.bind(subprovider);
 

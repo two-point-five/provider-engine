@@ -26,10 +26,21 @@ export default class TestBlockProvider extends FixtureProvider {
         setTimeout(() => end(null, result));
       },
       eth_getLogs: (payload, next, end) => {
-        const { fromBlock } = payload.params[0];
-        const transactions = this._blockChain[fromBlock].transactions;
+        const transactions = this._currentBlock.transactions;
+        const logs = transactions.map((tx) => {
+          return {
+            address: tx._logAddress,
+            blockNumber: tx.blockNumber,
+            blockHash: tx.blockHash,
+            data: tx._logData,
+            logIndex: tx.transactionIndex,
+            topics: tx._logTopics,
+            transactionIndex: tx.transactionIndex,
+            transactionHash: tx.hash,
+          };
+        });
         // return result asynchronously
-        setTimeout(() => end(null, transactions));
+        setTimeout(() => end(null, logs));
       },
     };
   }

@@ -8,7 +8,6 @@ import CacheStrategy from './cache-strategy';
 //
 
 export default class BlockCacheStrategy extends CacheStrategy {
-
   private cache: any;
 
   constructor() {
@@ -60,7 +59,7 @@ export default class BlockCacheStrategy extends CacheStrategy {
       return false;
     }
     const blockTag = blockTagForPayload(payload);
-    return (blockTag !== 'pending');
+    return blockTag !== 'pending';
   }
 
   // naively removes older block caches

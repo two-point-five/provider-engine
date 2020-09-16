@@ -45,8 +45,12 @@ export default class GaspriceProvider extends Subprovider {
       const getBlock = (item, cb) => {
         const p2 = { id: 0, jsonrpc: '2.0', method: 'eth_getBlockByNumber', params: [item, true] };
         this.emitPayload(p2, (err, blockRes) => {
-          if (err) { return cb(err); }
-          if (!blockRes.result) { return cb(GasPriceError.BlockNotFound(item)); }
+          if (err) {
+            return cb(err);
+          }
+          if (!blockRes.result) {
+            return cb(GasPriceError.BlockNotFound(item));
+          }
           cb(null, blockRes.result.transactions);
         });
       };
@@ -79,5 +83,4 @@ export default class GaspriceProvider extends Subprovider {
       map(blockNumbers, getBlock, calcPrice);
     });
   }
-
 }

@@ -23,5 +23,4 @@ export default class FixtureProvider extends Subprovider {
       next();
     }
   }
-
 }

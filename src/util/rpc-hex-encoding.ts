@@ -9,28 +9,28 @@ import { addHexPrefix, bufferToInt, stripHexPrefix, toBuffer, unpad } from './et
  */
 
 export function bufferToQuantityHex(buffer) {
-    buffer = toBuffer(buffer);
-    const hex = buffer.toString('hex');
-    const trimmed = unpad(hex);
-    return addHexPrefix(trimmed);
+  buffer = toBuffer(buffer);
+  const hex = buffer.toString('hex');
+  const trimmed = unpad(hex);
+  return addHexPrefix(trimmed);
 }
 
 export function intToQuantityHex(n) {
-    assert(typeof n === 'number' && n === Math.floor(n), 'intToQuantityHex arg must be an integer');
-    let nHex = toBuffer(n).toString('hex');
-    if (nHex[0] === '0') {
-        nHex = nHex.substring(1);
-    }
-    return addHexPrefix(nHex);
+  assert(typeof n === 'number' && n === Math.floor(n), 'intToQuantityHex arg must be an integer');
+  let nHex = toBuffer(n).toString('hex');
+  if (nHex[0] === '0') {
+    nHex = nHex.substring(1);
+  }
+  return addHexPrefix(nHex);
 }
 
 export function quantityHexToInt(prefixedQuantityHex) {
-    assert(typeof prefixedQuantityHex === 'string', 'arg to quantityHexToInt must be a string');
-    let quantityHex = stripHexPrefix(prefixedQuantityHex);
-    const isEven = quantityHex.length % 2 === 0;
-    if (!isEven) {
-        quantityHex = '0' + quantityHex;
-    }
-    const buf = new Buffer(quantityHex, 'hex');
-    return bufferToInt(buf);
+  assert(typeof prefixedQuantityHex === 'string', 'arg to quantityHexToInt must be a string');
+  let quantityHex = stripHexPrefix(prefixedQuantityHex);
+  const isEven = quantityHex.length % 2 === 0;
+  if (!isEven) {
+    quantityHex = '0' + quantityHex;
+  }
+  const buf = new Buffer(quantityHex, 'hex');
+  return bufferToInt(buf);
 }

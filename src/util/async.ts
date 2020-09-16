@@ -1,5 +1,5 @@
-// tslint:disable-next-line: no-empty
-const noop = (err?, result?) => {};
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = (_err?, _result?) => {};
 
 // Works the same as async.parallel
 export function parallel(fns, done: (err?, result?) => void = noop) {
@@ -12,9 +12,9 @@ export function parallel(fns, done: (err?, result?) => void = noop) {
 export function map(items, iterator, done: (err?, result?) => void = noop) {
   const results = [];
   let failure = false;
-  const  expected = items.length;
+  const expected = items.length;
   let actual = 0;
-  const createIntermediary = (index) => {
+  const createIntermediary = (_index) => {
     return (err, result) => {
       // Return if we found a failure anywhere.
       // We can't stop execution of functions since they've already
@@ -54,7 +54,9 @@ export function eachSeries(items, iterator, done: (err?, result?) => void = noop
   let current = -1;
 
   function callback(err, result) {
-    if (err) { return done(err); }
+    if (err) {
+      return done(err);
+    }
 
     results.push(result);
 

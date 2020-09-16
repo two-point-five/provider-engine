@@ -7,8 +7,7 @@ import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { addHexPrefix } from '../util/eth-util';
 
 export default class SanitizerSubprovider extends Subprovider {
-
-  public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
+  public handleRequest(payload: JSONRPCRequest, next: NextHandler, _end: CompletionHandler): void {
     const txParams = payload.params[0];
 
     if (typeof txParams === 'object' && !Array.isArray(txParams)) {
