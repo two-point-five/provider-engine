@@ -1,5 +1,5 @@
 export function assert(condition, message) {
-    if (!condition) {
-        throw message || 'Assertion failed';
-    }
+  if (!condition) {
+    throw message || 'Assertion failed';
+  }
 }

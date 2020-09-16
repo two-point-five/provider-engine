@@ -42,3 +42,30 @@ test('fallthrough test', (t) => {
   });
 
 });
+
+test('add provider at index', (t) => {
+  const providerA = new PassthroughProvider();
+  const providerB = new PassthroughProvider();
+  const providerC = new PassthroughProvider();
+  const engine = new ProviderEngine();
+  engine.addProvider(providerA);
+  engine.addProvider(providerB);
+  engine.addProvider(providerC, 1);
+
+  t.deepEqual((engine as any)._providers, [providerA, providerC, providerB]);
+  t.end();
+});
+
+test('remove provider', (t) => {
+  const providerA = new PassthroughProvider();
+  const providerB = new PassthroughProvider();
+  const providerC = new PassthroughProvider();
+  const engine = new ProviderEngine();
+  engine.addProvider(providerA);
+  engine.addProvider(providerB);
+  engine.addProvider(providerC);
+  engine.removeProvider(providerB);
+
+  t.deepEqual((engine as any)._providers, [providerA, providerC]);
+  t.end();
+});

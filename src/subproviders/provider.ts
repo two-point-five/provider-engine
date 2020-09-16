@@ -8,7 +8,6 @@ interface Provider {
 
 // wraps a provider in a subprovider interface
 export default class ProviderSubprovider extends Subprovider {
-
   protected provider: Provider;
 
   constructor(provider: Provider) {
@@ -18,8 +17,12 @@ export default class ProviderSubprovider extends Subprovider {
 
   public handleRequest(payload: JSONRPCRequest, next: NextHandler, end: CompletionHandler): void {
     this.provider.sendAsync(payload, (err, response) => {
-      if (err) { return end(err); }
-      if (response.error) { return end(new JsonRpcError.InternalError(response.error)); }
+      if (err) {
+        return end(err);
+      }
+      if (response.error) {
+        return end(new JsonRpcError.InternalError(response.error));
+      }
       end(null, response.result);
     });
   }

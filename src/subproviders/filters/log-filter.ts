@@ -15,8 +15,8 @@ export default class LogFilter extends Filter {
     // console.log('LogFilter - new')
     super();
     this.type = 'log';
-    this.fromBlock = (opts.fromBlock !== undefined) ? opts.fromBlock : 'latest';
-    this.toBlock = (opts.toBlock !== undefined) ? opts.toBlock : 'latest';
+    this.fromBlock = opts.fromBlock !== undefined ? opts.fromBlock : 'latest';
+    this.toBlock = opts.toBlock !== undefined ? opts.toBlock : 'latest';
     const expectedAddress = opts.address && (Array.isArray(opts.address) ? opts.address : [opts.address]);
     this.address = expectedAddress && expectedAddress.map(normalizeHex);
     this.topics = opts.topics || [];
@@ -69,7 +69,7 @@ export default class LogFilter extends Filter {
     }
     // address is correct:
     // console.log('LogFilter - validateLog - address', this.address)
-    if (this.address && !(this.address.map((a) => a.toLowerCase()).includes(log.address.toLowerCase()))) {
+    if (this.address && !this.address.map((a) => a.toLowerCase()).includes(log.address.toLowerCase())) {
       return false;
     }
     // topics match:

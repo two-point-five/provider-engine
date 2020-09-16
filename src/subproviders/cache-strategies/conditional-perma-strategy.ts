@@ -6,7 +6,6 @@ import PermaCacheStrategy from './perma-cache-strategy';
 //
 
 export default class ConditionalPermaCacheStrategy extends CacheStrategy {
-
   private strategy: any;
   private conditionals: any;
 

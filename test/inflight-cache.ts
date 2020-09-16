@@ -1,4 +1,5 @@
 import asyncParallel from 'async/parallel';
+import asyncSeries from 'async/series';
 import test = require('tape');
 import ProviderEngine from '../src/index';
 import FixtureProvider from '../src/subproviders/fixture';
@@ -17,12 +18,21 @@ inflightTest('getBlock for latest', {
   params: ['latest', false],
 }, true);
 
-inflightTest('getBlock for latest then 0', [{
+inflightTest('getBlock for latest (1) then 0', [{
   method: 'eth_getBlockByNumber',
   params: ['latest', false],
 }, {
   method: 'eth_getBlockByNumber',
   params: ['0x0', false],
+}], false);
+
+// inflight-cache does not resolve tags like "latest", so we dont know that latest === 0x1 in this case
+inflightTest('getBlock for latest (1) then 1', [{
+  method: 'eth_getBlockByNumber',
+  params: ['latest', false],
+}, {
+  method: 'eth_getBlockByNumber',
+  params: ['0x1', false],
 }], false);
 
 function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
@@ -47,66 +57,73 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
     engine.addProvider(dataProvider);
     engine.addProvider(blockProvider);
 
-    // run polling until first block
-    engine.start();
-    engine.once('block', () => {
-      // stop polling
-      engine.stop();
-      // clear subprovider metrics
-      cacheProvider.clearMetrics();
-      dataProvider.clearMetrics();
-      blockProvider.clearMetrics();
+    asyncSeries([
+      // run polling until first block
+      (next) => {
+        engine.start();
+        engine.once('block', () => next());
+      },
+      // perform test
+      (next) => {
+        // stop polling
+        engine.stop();
+        // clear subprovider metrics
+        cacheProvider.clearMetrics();
+        dataProvider.clearMetrics();
+        blockProvider.clearMetrics();
 
-      // determine which provider will handle the request
-      const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber');
-      const handlingProvider = isBlockTest ? blockProvider : dataProvider;
+        // determine which provider will handle the request
+        const isBlockTest = (payloads[0].method === 'eth_getBlockByNumber');
+        const handlingProvider = isBlockTest ? blockProvider : dataProvider;
 
-      // begin cache test
-      cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, () => {
-        t.end();
-      });
+        // begin cache test
+        cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, next);
+      },
+    ], (err) => {
+      t.ifErr(err);
+      t.end();
     });
 
-    function cacheCheck(_t, _engine, _cacheProvider, _handlingProvider, requests, cb) {
-      const method = requests[0].method;
-      requestSimultaneous(requests, noop, noop, (err, responses) => {
+    function cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, _cb) {
+      const method = payloads[0].method;
+      requestSimultaneous(payloads, noop, noop, function(err, responses) {
         // first request
-        _t.ifError(err, 'did not error');
-        _t.ok(responses && responses.filter(Boolean).length, 'has responses');
+        t.ifError(err, 'did not error');
+        t.ok(responses && responses.filter(Boolean).length, 'has responses');
 
         if (shouldHitCacheOnSecondRequest) {
 
-          _t.equal(_cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
-          _t.equal(_cacheProvider.getHandled(method).length, 1, 'cacheProvider did NOT handle "' + method + '"');
+          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method+'"');
+          t.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did NOT handle "' + method + '"');
 
-          _t.equal(_handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "' + method + '"');
-          _t.equal(_handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "' + method + '"');
+          t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "' + method + '"');
+          t.equal(handlingProvider.getHandled(method).length, 1, 'handlingProvider did handle "' + method + '"');
 
         } else {
 
-          _t.equal(_cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
-          _t.equal(_cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "' + method + '"');
+          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
+          t.equal(cacheProvider.getHandled(method).length, 0, 'cacheProvider did NOT handle "' + method + '"');
 
-          _t.equal(_handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did see "' + method + '"');
-          _t.equal(_handlingProvider.getHandled(method).length, 2, 'handlingProvider did handle "' + method + '"');
+          t.equal(handlingProvider.getWitnessed(method).length, 2, 'handlingProvider did see "' + method + '"');
+          t.equal(handlingProvider.getHandled(method).length, 2, 'handlingProvider did handle "' + method + '"');
 
         }
-        cb();
+
       });
     }
 
-    function requestSimultaneous(requests, afterFirst, afterSecond, cb) {
+    function requestSimultaneous(payloads, afterFirst, afterSecond, cb) {
       asyncParallel([
-        (_cb) => {
-          engine.sendAsync(createPayload(requests[0]), (err, result) => {
+        (cb) => {
+          engine.sendAsync(createPayload(payloads[0]), (err, result) => {
             afterFirst(err, result);
-            _cb(err, result);
+            cb(err, result);
           });
         },
-        (_cb) => {
-          engine.sendAsync(createPayload(requests[1]), (err, result) => {
+        (cb) => {
+          engine.sendAsync(createPayload(payloads[1]), (err, result) => {
             afterSecond(err, result);
-            _cb(err, result);
+            cb(err, result);
           });
         },
       ], cb);
@@ -115,5 +132,5 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
 
 }
 
-// tslint:disable-next-line: no-empty
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}

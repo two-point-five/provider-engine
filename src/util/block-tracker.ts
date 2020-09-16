@@ -59,7 +59,6 @@ export interface BufferBlock {
 // Class responsible for tracking new blocks as they are mined,
 // loading them, parsing them, and alerting subscribers via events.
 export default class BlockTracker extends EventEmitter {
-
   // The latest block data we have received
   public currentBlock?: BufferBlock;
 
@@ -95,7 +94,7 @@ export default class BlockTracker extends EventEmitter {
     this.destroySubscriptions();
   }
 
-  public fetchLatest(): Promise<any> {
+  public getLatestBlock(): Promise<any> {
     return this._blockTracker.checkForLatestBlock().catch((error) => {
       this.emit('error', error);
     });
@@ -120,7 +119,7 @@ export default class BlockTracker extends EventEmitter {
   }
 
   // Tries to get the block payload recursively
-  protected loadBlock(blockNumber: string, callCount: number = 0) {
+  protected loadBlock(blockNumber: string, callCount = 0) {
     this._getBlockByNumber(blockNumber).then((blockResponse) => {
       // Result can be null if the block hasn't fully propagated to the nodes
       if (blockResponse.result) {

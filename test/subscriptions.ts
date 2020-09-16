@@ -1,12 +1,13 @@
 // tslint:disable: max-line-length
 import test = require('tape');
+import asyncSeries from 'async/series';
 import ProviderEngine from '../src/index';
 import SubscriptionSubprovider from '../src/subproviders/subscriptions';
 import { createPayload } from '../src/util/create-payload';
 import TestBlockProvider from './util/block';
 import injectMetrics from './util/inject-metrics';
 
-subscriptionTest('basic block subscription', {
+subscriptionTest('basic block subscription', {}, {
     method: 'eth_subscribe',
     params: ['newHeads'],
   },
@@ -21,29 +22,31 @@ subscriptionTest('basic block subscription', {
   },
 );
 
-subscriptionTest('log subscription - basic', {
+subscriptionTest('log subscription - basic', {}, {
     method: 'eth_subscribe',
     params: ['logs', {
       topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
     }],
   },
-  function afterInstall(t, testMeta, response, cb) {
+  function afterInstall(_t, testMeta, response, cb) {
     testMeta.tx = testMeta.blockProvider.addTx({
-      topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
+      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
     });
     testMeta.badTx = testMeta.blockProvider.addTx({
-      topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
+      _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
     });
     cb();
   },
   function subscriptionChanges(t, testMeta, response, cb) {
-    const matchedTx = response.params.result;
-    t.equal(matchedTx, testMeta.tx, 'correct result');
+    const matchedLog = response.params.result;
+    t.ok(matchedLog.transactionHash, 'result has tx hash');
+    t.deepEqual(matchedLog.transactionHash, testMeta.tx.hash, 'result tx hash matches');
     cb();
   },
 );
 
-subscriptionTest('log subscription - and logic', {
+subscriptionTest('log subscription - and logic', {}, {
     method: 'eth_subscribe',
     params: ['logs', {
       topics: [
@@ -54,13 +57,14 @@ subscriptionTest('log subscription - and logic', {
   },
   function afterInstall(t, testMeta, response, cb) {
     testMeta.tx = testMeta.blockProvider.addTx({
-      topics: [
+      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
       ],
     });
     testMeta.badTx = testMeta.blockProvider.addTx({
-      topics: [
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
       ],
@@ -68,13 +72,14 @@ subscriptionTest('log subscription - and logic', {
     cb();
   },
   function subscriptionChangesOne(t, testMeta, response, cb) {
-    const matchedTx = response.params.result;
-    t.equal(matchedTx, testMeta.tx, 'correct result');
+    const matchedLog = response.params.result;
+    t.ok(matchedLog.transactionHash, 'result has tx hash');
+    t.deepEqual(matchedLog.transactionHash, testMeta.tx.hash, 'result tx hash matches');
     cb();
   },
 );
 
-subscriptionTest('log subscription - or logic', {
+subscriptionTest('log subscription - or logic', {}, {
     method: 'eth_subscribe',
     params: ['logs', {
       topics: [
@@ -87,31 +92,35 @@ subscriptionTest('log subscription - or logic', {
   },
   function afterInstall(t, testMeta, response, cb) {
     testMeta.tx1 = testMeta.blockProvider.addTx({
-      topics: [
+      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
       ],
     });
     cb();
   },
   function subscriptionChangesOne(t, testMeta, response, cb) {
-    const matchedTx1 = response.params.result;
-    t.equal(matchedTx1, testMeta.tx1, 'correct result');
+    const matchedLog = response.params.result;
+    t.ok(matchedLog.transactionHash, 'result has tx hash');
+    t.deepEqual(matchedLog.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
 
     testMeta.tx2 = testMeta.blockProvider.addTx({
-      topics: [
+      hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
       ],
     });
     cb();
   },
   function subscriptionChangesTwo(t, testMeta, response, cb) {
-    const matchedTx2 = response.params.result;
-    t.equal(matchedTx2, testMeta.tx2, 'correct result');
+    const matchedLog = response.params.result;
+    t.ok(matchedLog.transactionHash, 'result has tx hash');
+    t.deepEqual(matchedLog.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
     cb();
   },
 );
 
-subscriptionTest('log subscription - wildcard logic', {
+subscriptionTest('log subscription - wildcard logic', {}, {
     method: 'eth_subscribe',
     params: ['logs', {
       topics: [
@@ -122,7 +131,7 @@ subscriptionTest('log subscription - wildcard logic', {
   },
   function afterInstall(t, testMeta, response, cb) {
     testMeta.tx1 = testMeta.blockProvider.addTx({
-      topics: [
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
       ],
@@ -130,10 +139,10 @@ subscriptionTest('log subscription - wildcard logic', {
     cb();
   },
   function subscriptionChangesOne(t, testMeta, response, cb) {
-    const matchedTx1 = response.params.result;
-    t.equal(matchedTx1, testMeta.tx1, 'correct result');
+    const matchedLog = response.params.result;
+    t.equal(matchedLog.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
     testMeta.tx2 = testMeta.blockProvider.addTx({
-      topics: [
+      _logTopics: [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
       ],
@@ -141,119 +150,122 @@ subscriptionTest('log subscription - wildcard logic', {
     cb();
   },
   function subscriptionChangesTwo(t, testMeta, response, cb) {
-    const matchedTx2 = response.params.result;
-    t.equal(matchedTx2, testMeta.tx2, 'correct result');
+    const matchedLog = response.params.result;
+    t.equal(matchedLog.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
     cb();
   },
 );
 
-subscriptionTest('block subscription - parsing large difficulty', {
+subscriptionTest('block subscription - parsing large difficulty', { triggerNextBlock: false }, {
     method: 'eth_subscribe',
     params: ['newHeads'],
   },
   function afterInstall(t, testMeta, response, cb) {
-    testMeta.blockProvider.nextBlock({
+    const _newBlock = testMeta.blockProvider.nextBlock({
       gasLimit: '0x01',
-      difficulty: '0xfffffffffffffffffffffffffffffffe',
+      difficulty: '0xfffffffffffffffffffffffffffffffe'
     });
-    // This is necessary to ensure we get the block we just created above
-    testMeta.engine._blockTracker.fetchLatest().then(() => {
-      cb();
-    });
+    cb();
   },
   function subscriptionChangesOne(t, testMeta, response, cb) {
     const returnedDifficulty = response.params.result.difficulty;
     const returnedGasLimit = response.params.result.gasLimit;
     t.equal(returnedDifficulty, '0xfffffffffffffffffffffffffffffffe', 'correct result');
-    t.equal(returnedGasLimit, '0x1', 'correct result');
+    t.equal(returnedGasLimit, '0x01', 'correct result');
     cb();
   },
 );
 
-function subscriptionTest(label, subscriptionPayload, afterInstall, subscriptionChangesOne, subscriptionChangesTwo?) {
+function subscriptionTest(label, opts, subscriptionPayload, afterInstall, subscriptionChangesOne, subscriptionChangesTwo?) {
+  const shouldTriggerNextBlock = opts.triggerNextBlock === undefined ? true : opts.triggerNextBlock;
   const testMeta: any = {};
-  test('subscriptions - ' + label, (t) => {
+  const _t = test('subscriptions - ' + label, (t) => {
     // subscribe
     // new block
     // check for notification
+
     // handle "test_rpc"
     const subscriptionSubprovider = testMeta.subscriptionSubprovider = injectMetrics(new SubscriptionSubprovider());
     // handle block requests
     const blockProvider = testMeta.blockProvider = injectMetrics(new TestBlockProvider());
 
     const engine = testMeta.engine = new ProviderEngine({
-      pollingInterval: 100,
+      pollingInterval: 200,
+      pollingShouldUnref: false,
     });
     engine.addProvider(subscriptionSubprovider);
     engine.addProvider(blockProvider);
-    engine.once('block', startTest);
 
-    setTimeout(() => {
-      engine.start();
-    }, 1);
+    let response;
 
-    function startTest() {
-      // register subscription
-      engine.sendAsync(createPayload(subscriptionPayload), (err, response) => {
-        t.ifError(err, 'did not error');
-        t.ok(response, 'has response');
-
-        const method = subscriptionPayload.method;
-
-        t.equal(subscriptionSubprovider.getWitnessed(method).length, 1, 'subscriptionSubprovider did see "' + method + '"');
-        t.equal(subscriptionSubprovider.getHandled(method).length, 1, 'subscriptionSubprovider did handle "' + method + '"');
-
-        testMeta.subscriptionId = response.result;
-
-        // manipulates next block to trigger a notification
-        afterInstall(t, testMeta, response, (_err) => {
-          t.ifError(_err, 'did not error');
-          subscriptionSubprovider.once('data', continueTest);
-          // create next block so that notification is sent
-          testMeta.block = testMeta.blockProvider.nextBlock();
+    asyncSeries([
+      // wait for first block
+      (next) => {
+        engine.start();
+        engine.once('rawBlock', (block) => {
+          testMeta.block = block;
+          next();
         });
-      });
-    }
+      },
+      // install subscription
+      (next) => {
+        engine.sendAsync(createPayload(subscriptionPayload), function(err, response) {
+          if (err) return next(err);
 
-    // handle first notification
-    function continueTest(err, notification) {
-      const subscriptionId = testMeta.subscriptionId;
-      // after subscription check one
-      t.ifError(err, 'did not error');
-      t.ok(notification, 'has notification');
-      t.equal(notification.params.subscription, subscriptionId, 'notification has correct subscription id');
+          t.ok(response, 'has response');
 
-      // test-specific checks, and make changes to next block to trigger next notification
-      subscriptionChangesOne(t, testMeta, notification, (_err) => {
-        t.ifError(_err, 'did not error');
+          const method = subscriptionPayload.method;
+          t.equal(subscriptionSubprovider.getWitnessed(method).length, 1, 'subscriptionSubprovider did see "'+method+'"');
+          t.equal(subscriptionSubprovider.getHandled(method).length, 1, 'subscriptionSubprovider did handle "'+method+'"');
 
-        if (subscriptionChangesTwo) {
-          subscriptionSubprovider.once('data', (_err2, _notification2) => {
-            t.ifError(_err2, 'did not error');
-            t.ok(_notification2, 'has notification');
+          testMeta.subscriptionId = response.result;
+          next();
+        });
+      },
+      // manipulates next block to trigger a notification
+      (next) => afterInstall(t, testMeta, response, next),
+      (next) => {
+        checkSubscriptionChanges(subscriptionChangesOne, next);
+      },
+      (next) => {
+        if (!subscriptionChangesTwo) return next();
+        checkSubscriptionChanges(subscriptionChangesTwo, next);
+      },
+      // cleanup
+      (next) => {
+        engine.sendAsync(createPayload({ method: 'eth_unsubscribe', params: [testMeta.subscriptionId] }), next);
+      },
+    ], (err) => {
+      t.ifErr(err);
+      testMeta.engine.stop();
+      t.end();
+    });
 
-            // final checks
-            subscriptionChangesTwo(t, testMeta, _notification2, (_err3) => {
-              t.ifError(_err3, 'did not error');
-              end();
-            });
+    function checkSubscriptionChanges(onChange, cb) {
+      let notification;
+      asyncSeries([
+        // wait for subscription trigger
+        (next) => {
+          engine.once('data', (err, _notification) => {
+            if (err) return next(err);
+            notification = _notification;
+            // validate notification
+            const subscriptionId = testMeta.subscriptionId;
+            t.ok(notification, 'has notification');
+            t.equal(notification.params.subscription, subscriptionId, 'notification has correct subscription id');
+            next();
           });
-
-          // trigger a new block so that the above handler runs
-          testMeta.block = testMeta.blockProvider.nextBlock();
-        } else {
-          end();
-        }
-      });
+          // create next block so that notification is sent
+          if (shouldTriggerNextBlock) {
+            testMeta.block = testMeta.blockProvider.nextBlock();
+          }
+        },
+        // call test-specific onChange handler
+        (next) => {
+          onChange(t, testMeta, notification, next);
+        },
+      ], cb);
     }
 
-    function end() {
-      const payload = createPayload({ method: 'eth_unsubscribe', params: [testMeta.subscriptionId] });
-      engine.sendAsync(payload, (err, response) => {
-        testMeta.engine.stop();
-        t.ifError(err, 'did not error');
-        t.end();
-      });
-    }
   });
 }

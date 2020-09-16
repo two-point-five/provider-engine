@@ -3,7 +3,6 @@ import { cacheIdentifierForPayload, canCache } from '../../util/rpc-cache-utils'
 import CacheStrategy from './cache-strategy';
 
 export default class PermaCacheStrategy extends CacheStrategy {
-
   private cache: any;
 
   constructor() {
@@ -14,14 +13,18 @@ export default class PermaCacheStrategy extends CacheStrategy {
       this.cache = {};
     }, 10 * 60 * 1e3);
     // do not require the Node.js event loop to remain active
-    if (timeout.unref) { timeout.unref(); }
+    if (timeout.unref) {
+      timeout.unref();
+    }
   }
 
   public hitCheck(payload, requestedBlockNumber, hit, miss) {
     const identifier = cacheIdentifierForPayload(payload);
     const cached = this.cache[identifier];
 
-    if (!cached) { return miss(); }
+    if (!cached) {
+      return miss();
+    }
 
     // If the block number we're requesting at is greater than or
     // equal to the block where we cached a previous response,
@@ -56,5 +59,5 @@ export default class PermaCacheStrategy extends CacheStrategy {
 function compareHex(hexA, hexB) {
   const numA = parseInt(hexA, 16);
   const numB = parseInt(hexB, 16);
-  return numA === numB ? 0 : (numA > numB ? 1 : -1 );
+  return numA === numB ? 0 : numA > numB ? 1 : -1;
 }

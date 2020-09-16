@@ -47,7 +47,7 @@ export default abstract class BaseProvider extends EventEmitter {
   }
 
   // Method to subscribe to a given subscription type
-  public subscribe(subscribeMethod: string, subscriptionMethod: string, parameters: any): Promise<string> {
+  public subscribe(_subscribeMethod: string, _subscriptionMethod: string, _parameters: any): Promise<string> {
     // Override this with subscription implementation
     return Promise.reject(
       new ProviderEngineError('Subscriptions are not supported', ProviderEngineErrorCode.UnsupportedFeature),
@@ -55,7 +55,7 @@ export default abstract class BaseProvider extends EventEmitter {
   }
 
   // Method to unsubscribe
-  public unsubscribe(subscriptionId: string, unsubscribeMethod: string): Promise<boolean> {
+  public unsubscribe(_subscriptionId: string, _unsubscribeMethod: string): Promise<boolean> {
     // Override this with unsubscribe implementation
     return Promise.reject(
       new ProviderEngineError('Subscriptions are not supported', ProviderEngineErrorCode.UnsupportedFeature),

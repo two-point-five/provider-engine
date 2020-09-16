@@ -1,7 +1,9 @@
 import stringify from 'json-stable-stringify';
 
 export function cacheIdentifierForPayload(payload, opts: any = {}) {
-  if (!canCache(payload)) { return null; }
+  if (!canCache(payload)) {
+    return null;
+  }
   const { includeBlockRef } = opts;
   const params = includeBlockRef ? payload.params : paramsWithoutBlockTag(payload);
   return payload.method + ':' + stringify(params);
@@ -103,7 +105,6 @@ export function cacheTypeForPayload(payload) {
       return 'block';
 
     // never cache
-    case 'net_peerCount':
     case 'net_listening':
     case 'eth_syncing':
     case 'eth_sign':
