@@ -2,7 +2,7 @@
 import test = require('tape');
 import asyncSeries from 'async/series';
 import ProviderEngine from '../src/index';
-import SubscriptionSubprovider from '../src/subproviders/subscriptions';
+import SubscriptionsSubprovider from '../src/subproviders/subscriptions';
 import { createPayload } from '../src/util/create-payload';
 import TestBlockProvider from './util/block';
 import injectMetrics from './util/inject-metrics';
@@ -185,7 +185,7 @@ function subscriptionTest(label, opts, subscriptionPayload, afterInstall, subscr
     // check for notification
 
     // handle "test_rpc"
-    const subscriptionSubprovider = testMeta.subscriptionSubprovider = injectMetrics(new SubscriptionSubprovider());
+    const subscriptionSubprovider = testMeta.subscriptionSubprovider = injectMetrics(new SubscriptionsSubprovider());
     // handle block requests
     const blockProvider = testMeta.blockProvider = injectMetrics(new TestBlockProvider());
 

@@ -7,4 +7,4 @@ export { default as GasPriceSubprovider } from './gasprice';
 export { default as InflightCacheSubprovider } from './inflight-cache';
 export { default as ProviderSubprovider } from './provider';
 export { default as SanitizerSubprovider } from './sanitizer';
-export { default as SubscriptionSubprovider } from './subscriptions';
+export { default as SubscriptionsSubprovider } from './subscriptions';
