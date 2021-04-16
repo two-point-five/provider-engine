@@ -1,6 +1,6 @@
 import Subprovider, { CompletionHandler, NextHandler } from '../subprovider';
 import { default as Web3ProviderEngine } from '../provider-engine';
-import { JsonRpcMiddleware, JsonRpcResponse, JsonRpcRequest, JsonRpcError } from 'json-rpc-engine';
+import { JsonRpcMiddleware, JsonRpcResponse, JsonRpcRequest, JsonRpcSuccess, JsonRpcFailure, JsonRpcError } from 'json-rpc-engine';
 import { JSONRPCRequest } from '../base-provider';
 
 export type ConstructorFn = ({
@@ -33,17 +33,17 @@ export class JsonRpcEngineMiddlewareSubprovider extends Subprovider {
   }
 
   public handleRequest(req: JSONRPCRequest, next: NextHandler, end: CompletionHandler) {
-    const res: JsonRpcResponse<any> = { id: req.id, jsonrpc: '2.0' };
+    const res: JsonRpcResponse<unknown> = { id: req.id, jsonrpc: '2.0', error: null, result: null };
     this.middleware(req as JsonRpcRequest<any>, res, middlewareNext, middlewareEnd);
 
     function middlewareNext(handler?: (done: () => void) => void): void {
       next((err: Error | null, result?: any, cb?: any): void => {
         // update response object with result or error
         if (err) {
-          delete res.result;
-          res.error = { message: err.message, code: null };
+          delete (res as JsonRpcSuccess<any>).result;
+          (res as JsonRpcFailure<string>).error = { message: err.message, code: null };
         } else {
-          res.result = result;
+          (res as JsonRpcSuccess<any>).result = result;
         }
         // call middleware's next handler (even if error)
         if (handler) {
@@ -58,7 +58,7 @@ export class JsonRpcEngineMiddlewareSubprovider extends Subprovider {
       if (err) {
         end(new Error(err.message));
       } else {
-        end(null, res.result);
+        end(null, (res as JsonRpcSuccess<any>).result);
       }
     }
   }
