@@ -1,6 +1,6 @@
 {
   "name": "@bitski/provider-engine",
-  "version": "0.7.0-beta.4",
+  "version": "0.7.0-beta.5",
   "description": "",
   "repository": "https://github.com/BitskiCo/provider-engine",
   "main": "dist/commonjs/index.js",
@@ -15,7 +15,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "async": "3.2.2",
+    "async": "^3.2.4",
     "bn.js": "^4.11.8",
     "clone": "^2.0.0",
     "cross-fetch": "^3.0.6",
