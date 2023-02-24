@@ -1,7 +1,7 @@
 {
   "name": "@two-point-five/provider-engine",
   "version": "0.1.0",
-  "description": "",
+  "description": "A JavaScript library for composing Ethereum provider objects using middleware modules.",
   "repository": "https://github.com/two-point-five/provider-engine",
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
