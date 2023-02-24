@@ -10,7 +10,7 @@ export {
   Subprovider,
   NextHandler,
   CompletionHandler,
-  SubproviderNextCallback,
+  SubproviderNextCallback
 };
 
 // Errors

@@ -6,7 +6,7 @@ export function createPayload(data) {
     // defaults
     id: createRandomId(),
     jsonrpc: '2.0',
-    params: [],
+    params: []
     // user-specified
   }, data);
 }

@@ -8,7 +8,7 @@ export default class DefaultFixtures extends FixtureProvider {
       web3_clientVersion: 'ProviderEngine' + '/javascript',
       net_listening: true,
       eth_hashrate: '0x00',
-      eth_mining: false,
+      eth_mining: false
     }, opts);
     super(responses);
   }

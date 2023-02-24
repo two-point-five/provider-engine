@@ -1,4 +1,4 @@
-import Subprovider from '../../src/subproviders/subprovider';
+import Subprovider from '../../src/subprovider';
 
 export default class MockSubprovider extends Subprovider {
 
@@ -16,7 +16,7 @@ export default class MockSubprovider extends Subprovider {
     }
 
     const mockResponse = {
-      data: 'mock-success!',
+      data: 'mock-success!'
     };
 
     end(mockResponse);

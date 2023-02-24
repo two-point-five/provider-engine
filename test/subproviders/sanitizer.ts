@@ -1,4 +1,5 @@
 import test = require('tape');
+
 import ProviderEngine from '../../src/index';
 import FixtureProvider from '../../src/subproviders/fixture';
 import SanitizerSubprovider from '../../src/subproviders/sanitizer';
@@ -24,7 +25,7 @@ test('Sanitizer removes unknown keys', (t) => {
       t.equal(firstParam.topics.length, 3);
       t.equal(firstParam.topics[1], '0x0a');
       end(null, { baz: 'bam' });
-    },
+    }
   });
   engine.addProvider(checkSanitizer);
 
@@ -44,9 +45,9 @@ test('Sanitizer removes unknown keys', (t) => {
       topics: [
         null,
         '0X0A',
-        '0x03',
-      ],
-    }],
+        '0x03'
+      ]
+    }]
   };
 
   engine.sendAsync(payload, (err, response) => {

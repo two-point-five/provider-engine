@@ -1,6 +1,7 @@
 // tslint:disable: max-line-length
 
 import test = require('tape');
+
 import series from 'async/series';
 import ProviderEngine from '../src/index';
 import CacheProvider from '../src/subproviders/cache';
@@ -13,64 +14,64 @@ import injectMetrics from './util/inject-metrics';
 
 cacheTest('skipCache - true', {
   method: 'eth_getBalance',
-  skipCache: true,
+  skipCache: true
 }, false);
 
 cacheTest('skipCache - false', {
   method: 'eth_getBalance',
-  skipCache: false,
+  skipCache: false
 }, true);
 
 // block tags
 
 cacheTest('getBalance + undefined blockTag', {
   method: 'eth_getBalance',
-  params: ['0x1234'],
+  params: ['0x1234']
 }, true);
 
 cacheTest('getBalance + latest blockTag', {
   method: 'eth_getBalance',
-  params: ['0x1234', 'latest'],
+  params: ['0x1234', 'latest']
 }, true);
 
 cacheTest('getBalance + pending blockTag', {
   method: 'eth_getBalance',
-  params: ['0x1234', 'pending'],
+  params: ['0x1234', 'pending']
 }, false);
 
 // tx by hash
 
 cacheTest('getTransactionByHash for transaction that doesn\'t exist', {
   method: 'eth_getTransactionByHash',
-  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe00'],
+  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe00']
 }, false);
 
 cacheTest('getTransactionByHash for transaction that\'s pending', {
   method: 'eth_getTransactionByHash',
-  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
+  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01']
 }, false);
 
 cacheTest('getTransactionByHash for mined transaction', {
   method: 'eth_getTransactionByHash',
-  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
+  params: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02']
 }, true);
 
 // code
 
 cacheTest('getCode for latest block, then for earliest block, should not return cached response on second request', [{
   method: 'eth_getCode',
-  params: ['0x1234', 'latest'],
+  params: ['0x1234', 'latest']
 }, {
   method: 'eth_getCode',
-  params: ['0x1234', 'earliest'],
+  params: ['0x1234', 'earliest']
 }], false);
 
 cacheTest('getCode for a specific block, then for the one before it, should not return cached response on second request', [{
   method: 'eth_getCode',
-  params: ['0x1234', '0x3'],
+  params: ['0x1234', '0x3']
 }, {
   method: 'eth_getCode',
-  params: ['0x1234', '0x2'],
+  params: ['0x1234', '0x2']
 }], false);
 
 // perma-cache implementation was reduced to block-cache when we moved to eth-json-rpc-middleware
@@ -84,62 +85,62 @@ cacheTest('getCode for a specific block, then for the one before it, should not 
 
 cacheTest('getCode for an unspecified block, then for the latest, should return cached response on second request', [{
   method: 'eth_getCode',
-  params: ['0x1234'],
+  params: ['0x1234']
 }, {
   method: 'eth_getCode',
-  params: ['0x1234', 'latest'],
+  params: ['0x1234', 'latest']
 }], true);
 
 // blocks
 
 cacheTest('getBlockForNumber for latest (1) then block 0', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest', false],
+  params: ['latest', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x0', false],
+  params: ['0x0', false]
 }], false);
 
 cacheTest('getBlockForNumber for latest (1) then block 1', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest', false],
+  params: ['latest', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x1', false],
+  params: ['0x1', false]
 }], true);
 
 cacheTest('getBlockForNumber for 0 then block 1', [{
   method: 'eth_getBlockByNumber',
-  params: ['0x0', false],
+  params: ['0x0', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x1', false],
+  params: ['0x1', false]
 }], false);
 
 cacheTest('getBlockForNumber for block 0', [{
   method: 'eth_getBlockByNumber',
-  params: ['0x0', false],
+  params: ['0x0', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x0', false],
+  params: ['0x0', false]
 }], true);
 
 // storage
 
 cacheTest('getStorageAt for same block should cache', [{
   method: 'eth_getStorageAt',
-  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234'],
+  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234']
 }, {
   method: 'eth_getStorageAt',
-  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234'],
+  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234']
 }], true);
 
 cacheTest('getStorageAt for different block should not cache', [{
   method: 'eth_getStorageAt',
-  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234'],
+  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x1234']
 }, {
   method: 'eth_getStorageAt',
-  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x4321'],
+  params: ['0x295a70b2de5e3953354a6a8344e616ed314d7251', '0x0', '0x4321']
 }], false);
 
 // test helper for caching
@@ -178,7 +179,7 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
             value: '0xddb66b2addf4800',
             gas: '0x5622',
             gasPrice: '0xba43b7400',
-            input: '0x',
+            input: '0x'
           });
         } else {
           end(null, {
@@ -192,18 +193,18 @@ function cacheTest(label, payloads, shouldHitCacheOnSecondRequest) {
             value: '0xddb66b2addf4800',
             gas: '0x5622',
             gasPrice: '0xba43b7400',
-            input: '0x',
+            input: '0x'
           });
         }
       },
-      eth_getStorageAt: '0x00000000000000000000000000000000000000000000000000000000deadbeef',
+      eth_getStorageAt: '0x00000000000000000000000000000000000000000000000000000000deadbeef'
     }));
 
     // handle dummy block
     const blockProvider = injectMetrics(new TestBlockProvider());
 
     const engine = new ProviderEngine({
-      pollingInterval: 20,
+      pollingInterval: 20
     });
 
     engine.addProvider(cacheProvider);

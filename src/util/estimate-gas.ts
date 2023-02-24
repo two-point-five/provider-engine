@@ -6,9 +6,9 @@ This is a work around for https://github.com/ethereum/go-ethereum/issues/2577
 
 */
 export function estimateGas(provider, txParams, cb) {
-    provider.sendAsync(createPayload({
+  provider.sendAsync(createPayload({
     method: 'eth_estimateGas',
-    params: [txParams],
+    params: [txParams]
   }), (err, res) => {
     if (err) {
       // handle simple value transfer case

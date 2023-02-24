@@ -28,241 +28,241 @@ filterTest('block filter - basic', { method: 'eth_newBlockFilter' },
 );
 
 filterTest('log filter - basic', {
-    method: 'eth_newFilter',
-    params: [{
-      topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01'],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02'],
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog = response.result[0];
-    t.equal(results.length, 1, 'correct number of results');
-    t.equal(matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+  method: 'eth_newFilter',
+  params: [{
+    topics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01']
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe01']
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000deadbeefcafe02']
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog = response.result[0];
+  t.equal(results.length, 1, 'correct number of results');
+  t.equal(matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('log filter - mixed case', {
-    method: 'eth_newFilter',
-    params: [{
-      address: '0x00000000000000000000000000000000aAbBcCdD',
-      topics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe01'],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logAddress: '0x00000000000000000000000000000000AABBCCDD',
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000DEADBEEFCAFE01'],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logAddress: '0x00000000000000000000000000000000aAbBcCdD',
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe02'],
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog = response.result[0];
-    t.equal(results.length, 1, 'correct number of results');
-    t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+  method: 'eth_newFilter',
+  params: [{
+    address: '0x00000000000000000000000000000000aAbBcCdD',
+    topics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe01']
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logAddress: '0x00000000000000000000000000000000AABBCCDD',
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000DEADBEEFCAFE01']
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logAddress: '0x00000000000000000000000000000000aAbBcCdD',
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe02']
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog = response.result[0];
+  t.equal(results.length, 1, 'correct number of results');
+  t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('log filter - address array', {
-    method: 'eth_newFilter',
-    params: [{
-      address: [
-        '0x00000000000000000000000000000000aAbBcCdD',
-        '0x00000000000000000000000000000000a1b2c3d4'],
-      topics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe01'],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logAddress: '0x00000000000000000000000000000000AABBCCDD',
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000DEADBEEFCAFE01'],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logAddress: '0x00000000000000000000000000000000aAbBcCdD',
-      _logTopics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe02']
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog = response.result[0];
-    t.equal(results.length, 1, 'correct number of results');
-    t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+  method: 'eth_newFilter',
+  params: [{
+    address: [
+      '0x00000000000000000000000000000000aAbBcCdD',
+      '0x00000000000000000000000000000000a1b2c3d4'],
+    topics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe01']
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logAddress: '0x00000000000000000000000000000000AABBCCDD',
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000DEADBEEFCAFE01']
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logAddress: '0x00000000000000000000000000000000aAbBcCdD',
+    _logTopics: ['0x00000000000000000000000000000000000000000000000000DeadBeefCafe02']
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog = response.result[0];
+  t.equal(results.length, 1, 'correct number of results');
+  t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('log filter - and logic', {
-    method: 'eth_newFilter',
-    params: [{
-      topics: [
+  method: 'eth_newFilter',
+  params: [{
+    topics: [
       '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logTopics: [
       '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-      ],
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog = response.result[0];
-    t.equal(results.length, 1, 'correct number of results');
-    t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01'
+    ]
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog = response.result[0];
+  t.equal(results.length, 1, 'correct number of results');
+  t.equal(matchedLog && matchedLog.transactionHash, testMeta.tx.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('log filter - or logic', {
-    method: 'eth_newFilter',
-    params: [{
-      topics: [
-        [
-          '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-          '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-        ],
-      ],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx1 = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logTopics: [
+  method: 'eth_newFilter',
+  params: [{
+    topics: [
+      [
         '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-      ],
-    });
-    testMeta.tx2 = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe03',
-      ],
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog1 = response.result[0];
-    const matchedLog2 = response.result[1];
-    t.equal(results.length, 2, 'correct number of results');
-    t.equal(matchedLog1.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
-    t.equal(matchedLog2.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+      ]
+    ]
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx1 = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01'
+    ]
+  });
+  testMeta.tx2 = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe03'
+    ]
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog1 = response.result[0];
+  const matchedLog2 = response.result[1];
+  t.equal(results.length, 2, 'correct number of results');
+  t.equal(matchedLog1.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
+  t.equal(matchedLog2.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('log filter - wildcard logic', {
-    method: 'eth_newFilter',
-    params: [{
-      topics: [
-        null,
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    }],
-  },
-  function afterInstall(t, testMeta, response, cb) {
-    testMeta.tx1 = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    });
-    testMeta.tx2 = testMeta.blockProvider.addTx({
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
-      ],
-    });
-    testMeta.badTx = testMeta.blockProvider.addTx({
-      _logTopics: [
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-        '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
-      ],
-    });
-    testMeta.block = testMeta.blockProvider.nextBlock();
-    cb();
-  },
-  function filterChangesOne(t, testMeta, response, cb) {
-    const results = response.result;
-    const matchedLog1 = response.result[0];
-    const matchedLog2 = response.result[1];
-    t.equal(results.length, 2, 'correct number of results');
-    t.equal(matchedLog1.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
-    t.equal(matchedLog2.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
-    cb();
-  },
-  function filterChangesTwo(t, testMeta, response, cb) {
-    const results = response.result;
-    t.equal(results.length, 0, 'correct number of results');
-    cb();
-  },
+  method: 'eth_newFilter',
+  params: [{
+    topics: [
+      null,
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  }]
+},
+function afterInstall(t, testMeta, response, cb) {
+  testMeta.tx1 = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  });
+  testMeta.tx2 = testMeta.blockProvider.addTx({
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02',
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe02'
+    ]
+  });
+  testMeta.badTx = testMeta.blockProvider.addTx({
+    _logTopics: [
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01',
+      '0x00000000000000000000000000000000000000000000000000deadbeefcafe01'
+    ]
+  });
+  testMeta.block = testMeta.blockProvider.nextBlock();
+  cb();
+},
+function filterChangesOne(t, testMeta, response, cb) {
+  const results = response.result;
+  const matchedLog1 = response.result[0];
+  const matchedLog2 = response.result[1];
+  t.equal(results.length, 2, 'correct number of results');
+  t.equal(matchedLog1.transactionHash, testMeta.tx1.hash, 'result log matches tx hash');
+  t.equal(matchedLog2.transactionHash, testMeta.tx2.hash, 'result log matches tx hash');
+  cb();
+},
+function filterChangesTwo(t, testMeta, response, cb) {
+  const results = response.result;
+  t.equal(results.length, 0, 'correct number of results');
+  cb();
+},
 );
 
 filterTest('eth_getFilterLogs called with non log filter id should return []', { method: 'eth_newBlockFilter' },
@@ -302,7 +302,7 @@ function filterTest(label, filterPayload, afterInstall, filterChangesOne?, filte
 
     const engine = testMeta.engine = new ProviderEngine({
       pollingInterval: 20,
-      pollingShouldUnref: false,
+      pollingShouldUnref: false
     });
     engine.addProvider(filterProvider);
     engine.addProvider(blockProvider);
@@ -343,14 +343,14 @@ function filterTest(label, filterPayload, afterInstall, filterChangesOne?, filte
         } else {
           cb();
         }
-      },
+      }
     ], (err) => {
       t.ifError(err, 'did not error');
       engine.stop();
       t.end();
     });
 
-    function checkFilterChangesOne (done) {
+    function checkFilterChangesOne(done) {
       asyncWaterfall([
         // wait next block
         (cb) => {
@@ -372,7 +372,7 @@ function filterTest(label, filterPayload, afterInstall, filterChangesOne?, filte
       ], done);
     }
 
-    function checkFilterChangesTwo (done) {
+    function checkFilterChangesTwo(done) {
       asyncWaterfall([
         // check filter two
         (cb) => {
@@ -386,7 +386,7 @@ function filterTest(label, filterPayload, afterInstall, filterChangesOne?, filte
           t.equal(filterProvider.getHandled('eth_getFilterChanges').length, 2, 'filterProvider did handle "eth_getFilterChanges"');
 
           filterChangesTwo(t, testMeta, response, cb);
-        },
+        }
       ], done);
     }
 

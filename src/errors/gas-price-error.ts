@@ -1,5 +1,5 @@
 export enum GasPriceErrorCode {
-  BlockNotFound = 4000,
+  BlockNotFound = 4000
 }
 
 /**

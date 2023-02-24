@@ -1,6 +1,6 @@
 export enum BlockTrackerErrorCode {
   // Block data was not found after retries
-  BlockNotFound = 3000,
+  BlockNotFound = 3000
 }
 
 /**

@@ -1,6 +1,6 @@
 export enum SubscriptionErrorCode {
   UnsupportedType = 2000,
-  NotFound = 2001,
+  NotFound = 2001
 }
 
 /**

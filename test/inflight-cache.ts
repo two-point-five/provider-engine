@@ -10,29 +10,29 @@ import injectMetrics from './util/inject-metrics';
 
 inflightTest('getBalance for latest', {
   method: 'eth_getBalance',
-  params: ['0xabcd', 'latest'],
+  params: ['0xabcd', 'latest']
 }, true);
 
 inflightTest('getBlock for latest', {
   method: 'eth_getBlockByNumber',
-  params: ['latest', false],
+  params: ['latest', false]
 }, true);
 
 inflightTest('getBlock for latest (1) then 0', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest', false],
+  params: ['latest', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x0', false],
+  params: ['0x0', false]
 }], false);
 
 // inflight-cache does not resolve tags like "latest", so we dont know that latest === 0x1 in this case
 inflightTest('getBlock for latest (1) then 1', [{
   method: 'eth_getBlockByNumber',
-  params: ['latest', false],
+  params: ['latest', false]
 }, {
   method: 'eth_getBlockByNumber',
-  params: ['0x1', false],
+  params: ['0x1', false]
 }], false);
 
 function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
@@ -47,7 +47,7 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
     const cacheProvider = injectMetrics(new InflightCacheProvider());
     // handle balance
     const dataProvider = injectMetrics(new FixtureProvider({
-      eth_getBalance: '0xdeadbeef',
+      eth_getBalance: '0xdeadbeef'
     }));
     // handle dummy block
     const blockProvider = injectMetrics(new TestBlockProvider());
@@ -78,7 +78,7 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
 
         // begin cache test
         cacheCheck(t, engine, cacheProvider, handlingProvider, payloads, next);
-      },
+      }
     ], (err) => {
       t.ifErr(err);
       t.end();
@@ -93,7 +93,7 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
 
         if (shouldHitCacheOnSecondRequest) {
 
-          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method+'"');
+          t.equal(cacheProvider.getWitnessed(method).length, 2, 'cacheProvider did see "' + method + '"');
           t.equal(cacheProvider.getHandled(method).length, 1, 'cacheProvider did NOT handle "' + method + '"');
 
           t.equal(handlingProvider.getWitnessed(method).length, 1, 'handlingProvider did see "' + method + '"');
@@ -125,7 +125,7 @@ function inflightTest(label, payloads, shouldHitCacheOnSecondRequest) {
             afterSecond(err, result);
             cb(err, result);
           });
-        },
+        }
       ], cb);
     }
   });

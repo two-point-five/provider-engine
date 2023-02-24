@@ -42,7 +42,7 @@ export default class Web3ProviderEngine extends BaseProvider {
     this._blockTracker = new BlockTracker({
       provider: blockTrackerProvider,
       blockTracker: opts.blockTracker,
-      pollingInterval: opts.pollingInterval || 4000,
+      pollingInterval: opts.pollingInterval || 4000
     });
 
     this._blockTracker.on('block', this._setCurrentBlock.bind(this));
@@ -184,7 +184,7 @@ export default class Web3ProviderEngine extends BaseProvider {
           const resultObj: JSONRPCResponse = {
             id: payload.id,
             jsonrpc: payload.jsonrpc,
-            result,
+            result
           };
           // Complete promise
           if (error) {
@@ -259,13 +259,13 @@ export default class Web3ProviderEngine extends BaseProvider {
             id: payload.id,
             jsonrpc: payload.jsonrpc,
             result: result,
-            error: null,
+            error: null
           };
 
           if (error != null) {
             resultObj.error = {
               message: error.stack || error.message || error,
-              code: -32000,
+              code: -32000
             };
             // respond with both error formats
             finished(error, resultObj);

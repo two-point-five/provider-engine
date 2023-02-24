@@ -1,4 +1,5 @@
 import test = require('tape');
+
 import ProviderEngine from '../src/index';
 import FixtureProvider from '../src/subproviders/fixture';
 import { createPayload } from '../src/util/create-payload';
@@ -13,7 +14,7 @@ test('fallthrough test', (t) => {
   const providerA = injectMetrics(new PassthroughProvider());
   // handle "test_rpc"
   const providerB = injectMetrics(new FixtureProvider({
-    test_rpc: true,
+    test_rpc: true
   }));
   // handle block requests
   const providerC = injectMetrics(new TestBlockProvider());

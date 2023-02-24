@@ -82,7 +82,7 @@ export default class BlockTracker extends EventEmitter {
     this.provider = opts.provider;
     this._blockTracker = opts.blockTracker || new PollingBlockTracker({
       ...opts,
-      setSkipCacheFlag: true,
+      setSkipCacheFlag: true
     });
   }
 
@@ -188,6 +188,6 @@ function toBufferBlock(jsonBlock: EthereumBlockObject): BufferBlock {
     gasLimit:         toBuffer(jsonBlock.gasLimit),
     gasUsed:          toBuffer(jsonBlock.gasUsed),
     timestamp:        toBuffer(jsonBlock.timestamp),
-    transactions:     jsonBlock.transactions,
+    transactions:     jsonBlock.transactions
   };
 }

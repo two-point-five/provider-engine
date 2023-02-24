@@ -31,7 +31,7 @@ const permitted = [
   'fromBlock',
   'toBlock',
   'address',
-  'topics',
+  'topics'
 ];
 
 function cloneTxParams(txParams) {

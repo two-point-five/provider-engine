@@ -45,7 +45,7 @@ export default class PermaCacheStrategy extends CacheStrategy {
       const clonedValue = clone(result);
       this.cache[identifier] = {
         blockNumber: requestedBlockNumber,
-        result: clonedValue,
+        result: clonedValue
       };
     }
     callback();

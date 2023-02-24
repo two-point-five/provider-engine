@@ -16,7 +16,7 @@ const RETRIABLE_ERRORS = [
   'SyntaxError',
   'failed to parse response body',
   // ignore errors where http req failed to establish
-  'Failed to fetch',
+  'Failed to fetch'
 ];
 
 export interface FetchSubproviderOptions {
@@ -47,9 +47,9 @@ export default class FetchSubprovider extends Subprovider {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(newPayload),
+      body: JSON.stringify(newPayload)
     };
 
     if (this.originHttpHeaderKey && originDomain) {
@@ -59,7 +59,7 @@ export default class FetchSubprovider extends Subprovider {
     retry({
       times: 5,
       interval: 1000,
-      errorFilter: isErrorRetriable,
+      errorFilter: isErrorRetriable
     },
     (cb) => this._submitRequest(reqParams, cb),
     (err, result) => {
@@ -92,7 +92,7 @@ export default class FetchSubprovider extends Subprovider {
         (cb) => promiseToCallback(res.text())(cb),
         // parse body
         asyncify((rawBody) => JSON.parse(rawBody)),
-        parseResponse,
+        parseResponse
       ], done);
 
       function checkForHttpErrors(cb) {

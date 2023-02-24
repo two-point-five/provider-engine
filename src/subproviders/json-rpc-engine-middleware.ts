@@ -3,19 +3,20 @@ import { default as Web3ProviderEngine } from '../provider-engine';
 import { JsonRpcMiddleware, JsonRpcResponse, JsonRpcRequest, JsonRpcSuccess, JsonRpcFailure, JsonRpcError } from 'json-rpc-engine';
 import { JSONRPCRequest } from '../base-provider';
 
-export type ConstructorFn = ({
-  engine: JsonRpcEngine,
-  provider: Provider,
-  blockTracker: BlockTracker,
-}) => JsonRpcMiddleware;
+// export type ConstructorFn = ({
+//   engine: JsonRpcEngine,
+//   provider: Provider,
+//   blockTracker: BlockTracker
+// }) => JsonRpcMiddleware;
 
 // wraps a json-rpc-engine middleware in a subprovider interface
 export class JsonRpcEngineMiddlewareSubprovider extends Subprovider {
   private middleware: JsonRpcMiddleware;
-  private constructorFn: ConstructorFn;
+  // private constructorFn: ConstructorFn;
+  private constructorFn: any;
 
   // take a constructorFn to call once we have a reference to the engine
-  constructor(constructorFn: ConstructorFn) {
+  constructor(constructorFn: any) {
     super();
     this.constructorFn = constructorFn;
   }

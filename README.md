@@ -1,10 +1,6 @@
-# Bitski ProviderEngine
+# TwoPointFive ProviderEngine
 
-Bitski's ProviderEngine is a refactored version of Metamask's original provider engine library. This is the base of the Bitski Javascript SDKs (both browser and node).
-
-### Installation
-
-`npm install @bitski/provider-engine`
+TwoPointFive's ProviderEngine is a refactored version of Metamask's original provider engine library. This is the base of the TwoPointFive Javascript SDKs (both browser and node).
 
 ### Differences from original package
 
@@ -39,7 +35,7 @@ import {
   FixtureSubprovider,
   FilterSubprovider,
   FetchSubprovider
-} from '@bitski/provider-engine';
+} from '@two-point-five/provider-engine';
 
 const engine = new ProviderEngine();
 const web3 = new Web3(engine);
@@ -89,7 +85,7 @@ It's easy to extend the functionality of this module by writing your own Subprov
 See [src/subprovider.ts](/src/subprovider.ts) for the full interface.
 
 ```typescript
-import { Subprovider } from '@bitski/provider-engine';
+import { Subprovider } from '@two-point-five/provider-engine';
 
 export default class MySubprovider extends Subprovider {
 

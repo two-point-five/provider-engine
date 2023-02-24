@@ -1,8 +1,8 @@
 {
-  "name": "@bitski/provider-engine",
-  "version": "0.8.0",
+  "name": "@two-point-five/provider-engine",
+  "version": "0.1.0",
   "description": "",
-  "repository": "https://github.com/BitskiCo/provider-engine",
+  "repository": "https://github.com/two-point-five/provider-engine",
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
   "types": "dist/modules/index.d.ts",
@@ -31,15 +31,17 @@
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
+    "@types/clone": "^2.1.1",
     "@types/events": "^3.0.0",
     "@types/node": "^12.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.1.1",
-    "@typescript-eslint/parser": "^4.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
-    "eslint": "^7.9.0",
+    "eslint": "^8.28.0",
+    "eslint-config-prettier": "^8.3.0",
     "tape": "^4.4.0",
     "ts-node": "^8.1.0",
-    "typescript": "^3.4.5"
+    "typescript": "^4.9.3"
   }
 }

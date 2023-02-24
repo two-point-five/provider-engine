@@ -1,7 +1,7 @@
 export enum ProviderEngineErrorCode {
   UnhandledRequest = 1000,
   MissingImplementation = 1001,
-  UnsupportedFeature = 1002,
+  UnsupportedFeature = 1002
 }
 
 /**
